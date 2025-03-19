@@ -94,9 +94,14 @@ jobs:
           for COMMIT in $(git rev-list $GIT_RANGE); do
             COMMIT_MSG=$(git log --format=%B -n 1 $COMMIT)
             
-            if echo "$COMMIT_MSG" | grep -q '/changelog'; then
-              NOTE=$(echo "$COMMIT_MSG" | sed -n '/\/changelog/,/\/-changelog/p' | grep -v '/changelog')
-              LEVEL=$(echo "$COMMIT_MSG" | grep '/changelog' | grep -Eo 'patch|minor|major' || echo "patch")
+            if echo "$COMMIT_MSG" | grep -q '/changelog\|<details><summary>Changelog'; then
+              if echo "$COMMIT_MSG" | grep -q '/changelog'; then
+                NOTE=$(echo "$COMMIT_MSG" | sed -n '/\/changelog/,/\/-changelog/p' | grep -v '/changelog')
+                LEVEL=$(echo "$COMMIT_MSG" | grep '/changelog' | grep -Eo 'patch|minor|major' || echo "patch")
+              else
+                NOTE=$(echo "$COMMIT_MSG" | awk '/<details><summary>Changelog/,/<\/details>/' | sed '1d;$d')
+                LEVEL=$(echo "$COMMIT_MSG" | grep '<details><summary>Changelog' | grep -Eo 'patch|minor|major' || echo "patch")
+              fi
               
               if [[ "$LEVEL" == "major" ]] || [[ "$CHANGE_LEVEL" == "patch" ]]; then
                 CHANGE_LEVEL="$LEVEL"
