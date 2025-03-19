@@ -53,12 +53,16 @@ jobs:
 
       - name: Validate changelog content
         run: | #shell
-          if [[ -z "${{ steps.extract-changelog.outputs.note }}" ]]; then
+          NOTE="${{ steps.extract-changelog.outputs.note }}"
+          LEVEL="${{ steps.extract-changelog.outputs.level }}"
+          
+          if [[ -z "$NOTE" ]]; then
             echo "Error: No changelog notes found"
             exit 1
           fi
-          echo "✅ Valid changelog found (${steps.extract-changelog.outputs.level})"
-          echo "${{ steps.extract-changelog.outputs.note }}"
+          
+          echo "✅ Valid changelog found ($LEVEL)"
+          echo "$NOTE"
 
   update-changelog:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
