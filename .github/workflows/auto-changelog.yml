@@ -21,7 +21,8 @@ jobs:
         id: extract-changelog
         env:
           PR_DESCRIPTION: ${{ github.event.pull_request.body }}
-        run: |
+          DELIMITER: "EOF_CHANGELOG"
+        run: | #shell
           if [[ -z "$PR_DESCRIPTION" ]]; then
             echo "Error: PR description is empty"
             exit 1
@@ -29,26 +30,29 @@ jobs:
           
           if echo "$PR_DESCRIPTION" | grep -q '/changelog'; then
             if echo "$PR_DESCRIPTION" | grep -q '/-changelog'; then
-              RAW_CHANGELOG=$(echo "$PR_DESCRIPTION" | sed -n '/\/changelog/,/\/-changelog/p')
+              RAW_CHANGELOG="$(echo "$PR_DESCRIPTION" | awk '/\/changelog/,/\/-changelog/' | sed '1d;$d')"
             else
-              RAW_CHANGELOG=$(echo "$PR_DESCRIPTION" | sed -n '/\/changelog/,$p')
+              RAW_CHANGELOG="$(echo "$PR_DESCRIPTION" | awk '/\/changelog/,0' | sed '1d')"
             fi
           elif echo "$PR_DESCRIPTION" | grep -q '<details><summary>Changelog'; then
-            RAW_CHANGELOG=$(echo "$PR_DESCRIPTION" | sed -n '/<details><summary>Changelog/,/<\/details>/p')
+            RAW_CHANGELOG="$(echo "$PR_DESCRIPTION" | awk '/<details><summary>Changelog/,/<\/details>/' | sed '1d;$d')"
           else
             echo "Error: No changelog section found"
             echo "Use /changelog {patch|minor|major} followed by your changelog notes"
             exit 1
           fi
           
-          CHANGELOG_NOTE=$(echo "$RAW_CHANGELOG" | grep -v '/changelog' | grep -v '/-changelog' | grep -v '<details>' | grep -v '</details>')
-          CHANGE_LEVEL=$(echo "$RAW_CHANGELOG" | grep -E '/changelog|<details>' | grep -Eo 'patch|minor|major' || echo "patch")
+          CHANGE_LEVEL="$(echo "$PR_DESCRIPTION" | grep -E '/changelog|<details>' | grep -Eo 'patch|minor|major' || echo "patch")"
           
-          echo "note=$CHANGELOG_NOTE" >> $GITHUB_OUTPUT
-          echo "level=$CHANGE_LEVEL" >> $GITHUB_OUTPUT
+          {
+            echo "level=$CHANGE_LEVEL"
+            echo "note<<$DELIMITER"
+            echo "$RAW_CHANGELOG"
+            echo "$DELIMITER"
+          } >> $GITHUB_OUTPUT
 
       - name: Validate changelog content
-        run: |
+        run: | #shell
           if [[ -z "${{ steps.extract-changelog.outputs.note }}" ]]; then
             echo "Error: No changelog notes found"
             exit 1
@@ -72,7 +76,7 @@ jobs:
 
       - name: Extract changes since last tag
         id: changes
-        run: |
+        run: | #shell
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           if [[ -n "$PREVIOUS_TAG" ]]; then
             GIT_RANGE="${PREVIOUS_TAG}..HEAD"
@@ -107,7 +111,7 @@ jobs:
 
       - name: Update changelog file
         if: steps.changes.outputs.notes != ''
-        run: |
+        run: | #shell
           if [[ ! -f $CHANGELOG_FILE ]]; then
             echo "# Changelog" > $CHANGELOG_FILE
           fi
@@ -120,7 +124,7 @@ jobs:
       - name: Update version
         if: steps.changes.outputs.notes != ''
         id: version
-        run: |
+        run: | #shell
           NEW_VERSION=$(npx --yes changelog-tools $CHANGELOG_FILE | jq -r '.versions[0].version')
           if [[ -f package.json ]]; then
             npm version "$NEW_VERSION" --no-git-tag-version
@@ -130,7 +134,7 @@ jobs:
 
       - name: Commit changes
         if: steps.changes.outputs.notes != ''
-        run: |
+        run: | #shell
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add $CHANGELOG_FILE
@@ -151,7 +155,7 @@ jobs:
 
       - name: Generate release notes
         id: notes
-        run: |
+        run: | #shell
           VERSION=${GITHUB_REF#refs/tags/v}
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           
