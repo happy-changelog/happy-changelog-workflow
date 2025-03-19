@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.5
+### Changed
+* remove debug echo for remotes
+
 ## v0.1.4
 ### Changed
 * Added debug echo of remotes
