@@ -1,0 +1,179 @@
+name: Changelog Management
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+env:
+  CHANGELOG_FILE: CHANGELOG.md
+
+jobs:
+  validate-changelog:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract changelog section
+        id: extract-changelog
+        env:
+          PR_DESCRIPTION: ${{ github.event.pull_request.body }}
+          DELIMITER: "EOF_CHANGELOG"
+        run: | #shell
+          if [[ -z "$PR_DESCRIPTION" ]]; then
+            echo "Error: PR description is empty"
+            exit 1
+          fi
+          
+          if echo "$PR_DESCRIPTION" | grep -q '/changelog'; then
+            if echo "$PR_DESCRIPTION" | grep -q '/-changelog'; then
+              RAW_CHANGELOG="$(echo "$PR_DESCRIPTION" | awk '/\/changelog/,/\/-changelog/' | sed '1d;$d')"
+            else
+              RAW_CHANGELOG="$(echo "$PR_DESCRIPTION" | awk '/\/changelog/,0' | sed '1d')"
+            fi
+          elif echo "$PR_DESCRIPTION" | grep -q '<details><summary>Changelog'; then
+            RAW_CHANGELOG="$(echo "$PR_DESCRIPTION" | awk '/<details><summary>Changelog/,/<\/details>/' | sed '1d;$d')"
+          else
+            echo "Error: No changelog section found"
+            echo "Use /changelog {patch|minor|major} followed by your changelog notes"
+            exit 1
+          fi
+          
+          CHANGE_LEVEL="$(echo "$PR_DESCRIPTION" | grep -E '/changelog|<details>' | grep -Eo 'patch|minor|major' || echo "patch")"
+          
+          {
+            echo "level=$CHANGE_LEVEL"
+            echo "note<<$DELIMITER"
+            echo "$RAW_CHANGELOG"
+            echo "$DELIMITER"
+          } >> $GITHUB_OUTPUT
+
+      - name: Validate changelog content
+        run: | #shell
+          NOTE="${{ steps.extract-changelog.outputs.note }}"
+          LEVEL="${{ steps.extract-changelog.outputs.level }}"
+          
+          if [[ -z "$NOTE" ]]; then
+            echo "Error: No changelog notes found"
+            exit 1
+          fi
+          
+          echo "✅ Valid changelog found ($LEVEL)"
+          echo "$NOTE"
+
+  update-changelog:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+
+      - name: Extract changes since last tag
+        id: changes
+        run: | #shell
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            GIT_RANGE="${PREVIOUS_TAG}..HEAD"
+          else
+            GIT_RANGE="HEAD"
+          fi
+          
+          CHANGE_LEVEL="patch"
+          TEMP_FILE=$(mktemp)
+          
+          for COMMIT in $(git rev-list $GIT_RANGE); do
+            COMMIT_MSG=$(git log --format=%B -n 1 $COMMIT)
+            
+            if echo "$COMMIT_MSG" | grep -q '/changelog'; then
+              NOTE=$(echo "$COMMIT_MSG" | sed -n '/\/changelog/,/\/-changelog/p' | grep -v '/changelog')
+              LEVEL=$(echo "$COMMIT_MSG" | grep '/changelog' | grep -Eo 'patch|minor|major' || echo "patch")
+              
+              if [[ "$LEVEL" == "major" ]] || [[ "$CHANGE_LEVEL" == "patch" ]]; then
+                CHANGE_LEVEL="$LEVEL"
+              elif [[ "$LEVEL" == "minor" ]] && [[ "$CHANGE_LEVEL" == "patch" ]]; then
+                CHANGE_LEVEL="minor"
+              fi
+              
+              echo "$NOTE" >> $TEMP_FILE
+            fi
+          done
+          
+          echo "level=$CHANGE_LEVEL" >> $GITHUB_OUTPUT
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          cat $TEMP_FILE >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Update changelog file
+        if: steps.changes.outputs.notes != ''
+        run: | #shell
+          if [[ ! -f $CHANGELOG_FILE ]]; then
+            echo "# Changelog" > $CHANGELOG_FILE
+          fi
+          
+          npx --yes changelog-tools add $CHANGELOG_FILE \
+            -t "v:${{ steps.changes.outputs.level }}" \
+            --new-changelog "${{ steps.changes.outputs.notes }}" \
+            -o $CHANGELOG_FILE
+
+      - name: Update version
+        if: steps.changes.outputs.notes != ''
+        id: version
+        run: | #shell
+          NEW_VERSION=$(npx --yes changelog-tools $CHANGELOG_FILE | jq -r '.versions[0].version')
+          if [[ -f package.json ]]; then
+            npm version "$NEW_VERSION" --no-git-tag-version
+            git add package.json
+          fi
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Commit changes
+        if: steps.changes.outputs.notes != ''
+        run: | #shell
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add $CHANGELOG_FILE
+          git commit -m "chore: update changelog - v${{ steps.version.outputs.new_version }}"
+          git tag -a "v${{ steps.version.outputs.new_version }}" -m "Release v${{ steps.version.outputs.new_version }}"
+          git push --follow-tags
+
+  create-release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+
+      - name: Generate release notes
+        id: notes
+        run: | #shell
+          VERSION=${GITHUB_REF#refs/tags/v}
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [[ -n "$PREV_TAG" ]]; then
+            CHANGES=$(npx --yes changelog-tools $CHANGELOG_FILE -c -s "<=${VERSION} >${PREV_TAG#v}" --format markdown)
+          else
+            CHANGES=$(npx --yes changelog-tools $CHANGELOG_FILE | jq -r '.versions[0].body')
+          fi
+          
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: ${{ steps.notes.outputs.notes }}
