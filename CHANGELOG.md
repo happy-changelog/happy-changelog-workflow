@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.6
+### Changed
+* Changed PAT permissions
+
 ## v0.1.5
 ### Changed
 * remove debug echo for remotes
