@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.2
+### Fixed
+* create-release works on tag push
+
 ## v0.1.1
 ### Fixed
 * missing workflow for tag
