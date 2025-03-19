@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - main
-  create:
     tags:
       - 'v*'
 
@@ -154,7 +153,7 @@ jobs:
           git push origin "v${{ steps.version.outputs.new_version }}" --follow-tags
 
   create-release:
-    if: github.event_name == 'create' && startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
