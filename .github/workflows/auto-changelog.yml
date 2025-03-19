@@ -1,0 +1,28 @@
+name: Changelog Description Check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  check-pr-description:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check PR Description
+        env:
+          PR_DESCRIPTION: ${{ github.event.pull_request.body }}
+          REQUIRED_STRING: "CHANGELOG:" # Change this to your required string
+        run: |
+          if [[ -z "$PR_DESCRIPTION" ]]; then
+            echo "Error: PR description is empty"
+            exit 1
+          fi
+          
+          if ! echo "$PR_DESCRIPTION" | grep -q "$REQUIRED_STRING"; then
+            echo "Error: PR description must contain '$REQUIRED_STRING'"
+            echo "Please update your PR description and try again"
+            exit 1
+          fi
+          
+          echo "✅ PR description contains required string"
