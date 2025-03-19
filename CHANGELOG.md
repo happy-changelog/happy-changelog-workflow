@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.3
+### Fixed
+* Separate tag push token to ensure new workflow is started after tag push
+
 ## v0.1.2
 ### Fixed
 * create-release works on tag push
