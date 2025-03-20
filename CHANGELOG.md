@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.21
+### Changed
+* Added -v flag for debugging on tag push
+
 ## v0.1.20
 ### Fixed
 * Apparently fixed PAT usage
