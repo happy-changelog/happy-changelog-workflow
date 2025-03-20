@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.22
+### Changed
+* add more debug echos
+
 ## v0.1.21
 ### Changed
 * Added -v flag for debugging on tag push
