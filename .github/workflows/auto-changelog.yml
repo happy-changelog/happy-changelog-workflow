@@ -161,6 +161,23 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Set version variable
+        id: version
+        run: |
+          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: rgembalik
+          minimum-approvals: 1
+          issue-title: "Deploying ${{ steps.version.outputs.version }} to prod from staging"
+          issue-body: "Please approve or deny the deployment of version ${{ steps.version.outputs.version }}."
+          exclude-workflow-initiator-as-approver: false
+          fail-on-denial: true
+          additional-approved-words: ''
+          additional-denied-words: ''
+
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
