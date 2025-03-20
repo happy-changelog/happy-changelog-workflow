@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.26
+### Fixed
+* Fix multiline release notes
+
 ## v0.1.25
 ### Changed
 * Release notes consolidation now takes place only after release is published
