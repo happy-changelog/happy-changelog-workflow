@@ -1,0 +1,99 @@
+name: Update Changelog file and version
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  CHANGELOG_FILE: CHANGELOG.md
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+
+      - name: Extract changes since last tag
+        id: changes
+        run: | #shell
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            GIT_RANGE="${PREVIOUS_TAG}..HEAD"
+          else
+            GIT_RANGE="HEAD"
+          fi
+          
+          CHANGE_LEVEL="patch"
+          TEMP_FILE=$(mktemp)
+          
+          for COMMIT in $(git rev-list $GIT_RANGE); do
+            COMMIT_MSG=$(git log --format=%B -n 1 $COMMIT)
+            
+            if echo "$COMMIT_MSG" | grep -q '/changelog\|<details><summary>Changelog'; then
+              if echo "$COMMIT_MSG" | grep -q '/changelog'; then
+                NOTE=$(echo "$COMMIT_MSG" | sed -n '/\/changelog/,/\/-changelog/p' | grep -v '/changelog')
+                LEVEL=$(echo "$COMMIT_MSG" | grep '/changelog' | grep -Eo 'patch|minor|major' || echo "patch")
+              else
+                NOTE=$(echo "$COMMIT_MSG" | awk '/<details><summary>Changelog/,/<\/details>/' | sed '1d;$d')
+                LEVEL=$(echo "$COMMIT_MSG" | grep '<details><summary>Changelog' | grep -Eo 'patch|minor|major' || echo "patch")
+              fi
+              
+              if [[ "$LEVEL" == "major" ]] || [[ "$CHANGE_LEVEL" == "patch" ]]; then
+                CHANGE_LEVEL="$LEVEL"
+              elif [[ "$LEVEL" == "minor" ]] && [[ "$CHANGE_LEVEL" == "patch" ]]; then
+                CHANGE_LEVEL="minor"
+              fi
+              
+              echo "$NOTE" >> $TEMP_FILE
+            fi
+          done
+          
+          echo "level=$CHANGE_LEVEL" >> $GITHUB_OUTPUT
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          cat $TEMP_FILE >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Update changelog file
+        if: steps.changes.outputs.notes != ''
+        run: | #shell
+          if [[ ! -f $CHANGELOG_FILE ]]; then
+            echo "# Changelog" > $CHANGELOG_FILE
+          fi
+          
+          npx --yes changelog-tools add $CHANGELOG_FILE \
+            -t "v:${{ steps.changes.outputs.level }}" \
+            --new-changelog "${{ steps.changes.outputs.notes }}" \
+            -o $CHANGELOG_FILE
+
+      - name: Update version
+        if: steps.changes.outputs.notes != ''
+        id: version
+        run: | #shell
+          NEW_VERSION=$(npx --yes changelog-tools $CHANGELOG_FILE | jq -r '.versions[0].version')
+          if [[ -f package.json ]]; then
+            npm version "$NEW_VERSION" --no-git-tag-version
+            git add package.json
+          fi
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Commit changes
+        if: steps.changes.outputs.notes != ''
+        run: | #shell
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add $CHANGELOG_FILE
+          git commit -m "chore: update changelog - v${{ steps.version.outputs.new_version }}"
+          git push origin main
+          git tag -a "v${{ steps.version.outputs.new_version }}" -m "Release v${{ steps.version.outputs.new_version }}"
+          git push origin "v${{ steps.version.outputs.new_version }}"
+
+  

@@ -1,0 +1,59 @@
+name: Validate PR changelog
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+  
+env:
+  CHANGELOG_FILE: CHANGELOG.md
+
+jobs:
+  validate-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract changelog section
+        id: extract-changelog
+        env:
+          PR_DESCRIPTION: ${{ github.event.pull_request.body }}
+          DELIMITER: "EOF_CHANGELOG"
+        run: | #shell
+          if [[ -z "$PR_DESCRIPTION" ]]; then
+            echo "Error: PR description is empty"
+            exit 1
+          fi
+          
+          if echo "$PR_DESCRIPTION" | grep -q '/changelog'; then
+            if echo "$PR_DESCRIPTION" | grep -q '/-changelog'; then
+              RAW_CHANGELOG="$(echo "$PR_DESCRIPTION" | awk '/\/changelog/,/\/-changelog/' | sed '1d;$d')"
+            else
+              RAW_CHANGELOG="$(echo "$PR_DESCRIPTION" | awk '/\/changelog/,0' | sed '1d')"
+            fi
+          elif echo "$PR_DESCRIPTION" | grep -q '<details><summary>Changelog'; then
+            RAW_CHANGELOG="$(echo "$PR_DESCRIPTION" | awk '/<details><summary>Changelog/,/<\/details>/' | sed '1d;$d')"
+          else
+            echo "Error: No changelog section found"
+            echo "Use /changelog {patch|minor|major} followed by your changelog notes"
+            exit 1
+          fi
+          
+          CHANGE_LEVEL="$(echo "$PR_DESCRIPTION" | grep -E '/changelog|<details>' | grep -Eo 'patch|minor|major' || echo "patch")"
+          
+          {
+            echo "level=$CHANGE_LEVEL"
+            echo "note<<$DELIMITER"
+            echo "$RAW_CHANGELOG"
+            echo "$DELIMITER"
+          } >> $GITHUB_OUTPUT
+
+      - name: Validate changelog content
+        run: | #shell
+          NOTE="${{ steps.extract-changelog.outputs.note }}"
+          LEVEL="${{ steps.extract-changelog.outputs.level }}"
+          
+          if [[ -z "$NOTE" ]]; then
+            echo "Error: No changelog notes found"
+            exit 1
+          fi
+          
+          echo "✅ Valid changelog found ($LEVEL)"
+          echo "$NOTE"
