@@ -151,9 +151,9 @@ jobs:
           git push origin main
           
           # Create and push tag with PAT to trigger release workflow
-          # git tag -a "v${{ steps.version.outputs.new_version }}" -m "Release v${{ steps.version.outputs.new_version }}"
-          # git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}
-          # git push origin "v${{ steps.version.outputs.new_version }}"
+          git tag -a "v${{ steps.version.outputs.new_version }}" -m "Release v${{ steps.version.outputs.new_version }}"
+          git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}
+          git push origin "v${{ steps.version.outputs.new_version }}"
 
   create-release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
