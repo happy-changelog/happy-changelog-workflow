@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.11
+### Added
+* Fake feature 3
+
 ## v0.1.10
 ### Added
 * Fake feature 2
