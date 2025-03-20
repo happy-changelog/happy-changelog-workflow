@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.0
+### Updated
+* Readme now contains all missing screenshots of workflow
+
 ## v0.2.0
 ### Added
 * Readme and images
