@@ -54,14 +54,14 @@ The change level must be one of:
    - CHANGELOG.md and package.json are updated automatically
    - New version tag is created and pushed
 
-> 📸 **Screenshot opportunity**: Show the automated changelog commit and version bump
+![](./docs/commit-with-changes.png)
 
 3. **Release Creation**
-   - When a new release is published
-   - Release notes are automatically populated from the changelog since the last release
-   - Previous changes are consolidated into the release notes
+   - When a new release is published from tag:
+     - Release notes are automatically populated from the changelog since the last release
+     - Previous changes are consolidated into the release notes
 
-> 📸 **Screenshot opportunity**: Show a created release with auto-populated notes
+![](./docs/auto-populated-release.png)
 
 ## Best Practices
 
@@ -93,14 +93,14 @@ If the PR validation fails, check:
    - Go to Settings > Branches
    - Add rule for `main` branch
    - Enable "Require status checks to pass"
-   - Add "PR Changelog Validation" to required checks
+   - Add "check-pr-description" to required checks
    - Enable "Require squash merging"
 
 4. **Initialize Files**
    - Create `CHANGELOG.md` in repository root and add last known version inside (optional: for fresh projects the file will be initialized for you)
    - Ensure `package.json` exists with version field (for npm packages)
 
-> 📸 **Screenshot opportunity**: Show the required repository settings
+![](./docs/pr-settings.png)
 
 ## Important Merge Process
 When merging PRs:
