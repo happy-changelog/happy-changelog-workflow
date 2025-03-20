@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.14
+### Fixed
+* Fixed inputs for manual approval
+
 ## v0.1.13
 ### Added
 * Manual approval before release
