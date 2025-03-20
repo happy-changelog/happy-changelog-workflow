@@ -149,19 +149,8 @@ jobs:
           git add $CHANGELOG_FILE
           git commit -m "chore: update changelog - v${{ steps.version.outputs.new_version }}"
           git push origin main
-          
-          # Set up credentials helper for tag push
-          git config --global credential.helper store
-          echo "https://x-access-token:${{ secrets.PAT }}@github.com" > ~/.git-credentials
-          
-          # Create and push tag
-          echo "pushing new tag"
           git tag -a "v${{ steps.version.outputs.new_version }}" -m "Release v${{ steps.version.outputs.new_version }}"
           git push origin "v${{ steps.version.outputs.new_version }}"
-          
-          # Clean up credentials
-          rm ~/.git-credentials
-          echo "pushed new tag"
 
   edit-release:
     if: github.event_name == 'release' && github.event.action == 'published'
