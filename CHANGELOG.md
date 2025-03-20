@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.7
+### Changed
+* Use PAT to access last release
+* Changed PAT permissions
+
 ## v0.1.6
 ### Changed
 * Changed PAT permissions
