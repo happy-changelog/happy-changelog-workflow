@@ -1,0 +1,59 @@
+name: Add release notes to GitHub release
+
+on:
+  release:
+    types: [published]
+
+env:
+  CHANGELOG_FILE: CHANGELOG.md
+
+jobs:
+  edit-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+
+      - name: Generate release notes
+        id: notes
+        run: | #shell
+          VERSION=${GITHUB_REF#refs/tags/v}
+          
+          # Get the previous release tag by skipping the current one
+          PREV_TAG=$(curl -s -H "Authorization: token ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases" \
+            | jq -r "[.[].tag_name] | select(length > 1) | .[1] // empty")
+          
+          if [[ -n "$PREV_TAG" ]]; then
+            CHANGES=$(npx --yes changelog-tools $CHANGELOG_FILE -c -s "<=${VERSION} >${PREV_TAG#v}" --format markdown)
+          else
+            CHANGES=$(npx --yes changelog-tools $CHANGELOG_FILE -c -s "<=${VERSION}" --format markdown)
+          fi
+          
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Edit GitHub Release
+        env:
+          NOTES: ${{ steps.notes.outputs.notes }}
+        run: | #shell
+          VERSION=${GITHUB_REF#refs/tags/v}
+          
+          RELEASE_ID=$(curl -s -H "Authorization: token ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}" \
+            | jq -r '.id')
+          
+          # Create JSON payload using jq --arg to properly handle the notes content
+          JSON_PAYLOAD="$(jq -n --arg body "$NOTES" '{"body": $body}')"
+          
+          curl -X PATCH \
+            -H "Authorization: token ${{ github.token }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}" \
+            --data "$JSON_PAYLOAD"
