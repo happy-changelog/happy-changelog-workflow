@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.29
+### Fixed
+* Fix incorrect var name for jq
+
 ## v0.1.28
 ### Fixed
 * Move notes to env variable to fix multiline stuff and quotes
