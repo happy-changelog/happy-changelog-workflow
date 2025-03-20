@@ -179,7 +179,7 @@ jobs:
           if [[ -n "$PREV_TAG" ]]; then
             CHANGES=$(npx --yes changelog-tools $CHANGELOG_FILE -c -s "<=${VERSION} >${PREV_TAG#v}" --format markdown)
           else
-            CHANGES=$(npx --yes changelog-tools $CHANGELOG_FILE | jq -r '.versions[0].body')
+            CHANGES=$(npx --yes changelog-tools $CHANGELOG_FILE -c -s "<=${VERSION}" --format markdown)
           fi
           
           echo "notes<<EOF" >> $GITHUB_OUTPUT
