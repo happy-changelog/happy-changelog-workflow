@@ -46,7 +46,7 @@ The change level must be one of:
    - Ensures changelog notes are present
    - Checks for valid change level
 
-> 📸 **Screenshot opportunity**: Show the PR checks in action
+![](./docs/pr-checks.png)
 
 2. **Changelog Updates**
    - When PR is merged to main, changelog entries are collected
