@@ -170,7 +170,11 @@ jobs:
         id: notes
         run: | #shell
           VERSION=${GITHUB_REF#refs/tags/v}
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          # Get the last release tag instead of last tag
+          PREV_TAG=$(curl -s -H "Authorization: token ${{ secrets.PAT }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/latest" \
+            | jq -r '.tag_name // empty')
           
           if [[ -n "$PREV_TAG" ]]; then
             CHANGES=$(npx --yes changelog-tools $CHANGELOG_FILE -c -s "<=${VERSION} >${PREV_TAG#v}" --format markdown)
