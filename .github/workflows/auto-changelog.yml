@@ -195,9 +195,10 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Edit GitHub Release
+        env:
+          NOTES: ${{ steps.notes.outputs.notes }}
         run: | #shell
           VERSION=${GITHUB_REF#refs/tags/v}
-          NOTES='${{ steps.notes.outputs.notes }}'
           
           RELEASE_ID=$(curl -s -H "Authorization: token ${{ github.token }}" \
             "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}" \
