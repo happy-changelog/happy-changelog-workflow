@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.15
+### Fixed
+* Add permissions for issues on create-release step
+
 ## v0.1.14
 ### Fixed
 * Fixed inputs for manual approval
