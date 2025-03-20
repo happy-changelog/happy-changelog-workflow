@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.20
+### Fixed
+* Apparently fixed PAT usage
+
 ## v0.1.19
 ### Changed
 * Try username for pat
