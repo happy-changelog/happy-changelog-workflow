@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.13
+### Added
+* Manual approval before release
+
 ## v0.1.12
 ### Removed
 * Environment: manual
