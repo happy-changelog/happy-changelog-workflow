@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.0
+### Added
+* Readme and images
+
 ## v0.1.29
 ### Fixed
 * Fix incorrect var name for jq
