@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.28
+### Fixed
+* Move notes to env variable to fix multiline stuff and quotes
+
 ## v0.1.27
 ### Fixed
 * Another fix for multiline strings in release notes (maybe)
