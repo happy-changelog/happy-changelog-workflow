@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.16
+### Removed
+* Remove the manual approval as it is not really useful with the way it pauses
+
 ## v0.1.15
 ### Fixed
 * Add permissions for issues on create-release step
