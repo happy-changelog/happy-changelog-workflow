@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.27
+### Fixed
+* Another fix for multiline strings in release notes (maybe)
+
 ## v0.1.26
 ### Fixed
 * Fix multiline release notes
