@@ -205,7 +205,7 @@ jobs:
             | jq -r '.id')
           
           # Create JSON payload using jq --arg to properly handle the notes content
-          JSON_PAYLOAD="$(jq -n --arg body "$NOTES" '{"body": $arg}')"
+          JSON_PAYLOAD="$(jq -n --arg body "$NOTES" '{"body": $body}')"
           
           curl -X PATCH \
             -H "Authorization: token ${{ github.token }}" \
