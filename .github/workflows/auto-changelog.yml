@@ -150,11 +150,17 @@ jobs:
           git commit -m "chore: update changelog - v${{ steps.version.outputs.new_version }}"
           git push origin main
           
-          # Create and push tag with PAT to trigger release workflow
+          # Set up credentials helper for tag push
+          git config --global credential.helper store
+          echo "https://x-access-token:${{ secrets.PAT }}@github.com" > ~/.git-credentials
+          
+          # Create and push tag
           echo "pushing new tag"
-          git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}
           git tag -a "v${{ steps.version.outputs.new_version }}" -m "Release v${{ steps.version.outputs.new_version }}"
-          git push -v origin "v${{ steps.version.outputs.new_version }}" -u x-access-token:${{ secrets.PAT }}
+          git push origin "v${{ steps.version.outputs.new_version }}"
+          
+          # Clean up credentials
+          rm ~/.git-credentials
           echo "pushed new tag"
 
   create-release:
