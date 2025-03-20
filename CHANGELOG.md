@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.10
+### Added
+* Fake feature 2
+
 ## v0.1.9
 ### Fixed
 * environment now correctly moved to separate line
