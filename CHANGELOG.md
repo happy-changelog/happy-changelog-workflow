@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.1
+### Changed
+* Changelog workflow was now split into separate files depending on when
+they run
+* --------
+
 ## v0.3.0
 ### Updated
 * Readme now contains all missing screenshots of workflow
