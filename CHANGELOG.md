@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.24
+### Changed
+* Try using credentials helper to authenticate tag push
+* add explicit user to push
+
 ## v0.1.23
 ### Changed
 * add explicit user to push
