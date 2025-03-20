@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.25
+### Changed
+* Release notes consolidation now takes place only after release is published
+
 ## v0.1.24
 ### Changed
 * Try using credentials helper to authenticate tag push
