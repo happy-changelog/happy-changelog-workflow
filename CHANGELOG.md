@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.19
+### Changed
+* Try username for pat
+
 ## v0.1.18
 ### Changed
 * Changed username for tag creation
