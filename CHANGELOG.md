@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.12
+### Removed
+* Environment: manual
+* tag autocreation (for now) as release is not easily done as manual step
+
 ## v0.1.11
 ### Added
 * Fake feature 3
