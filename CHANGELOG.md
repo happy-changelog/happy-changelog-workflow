@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.18
+### Changed
+* Changed username for tag creation
+
 ## v0.1.17
 ### Changed
 * check what happens if pat doesn't have permissions to push
