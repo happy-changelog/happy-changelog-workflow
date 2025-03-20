@@ -6,8 +6,8 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v*'
+  release:
+    types: [published]
 
 env:
   CHANGELOG_FILE: CHANGELOG.md
@@ -163,12 +163,11 @@ jobs:
           rm ~/.git-credentials
           echo "pushed new tag"
 
-  create-release:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+  edit-release:
+    if: github.event_name == 'release' && github.event.action == 'published'
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      issues: write
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -180,10 +179,10 @@ jobs:
         run: | #shell
           VERSION=${GITHUB_REF#refs/tags/v}
           
-          # Get the last release tag instead of last tag
-          PREV_TAG=$(curl -s -H "Authorization: token ${{ secrets.PAT }}" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/latest" \
-            | jq -r '.tag_name // empty')
+          # Get the previous release tag by skipping the current one
+          PREV_TAG=$(curl -s -H "Authorization: token ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases" \
+            | jq -r "[.[].tag_name] | select(length > 1) | .[1] // empty")
           
           if [[ -n "$PREV_TAG" ]]; then
             CHANGES=$(npx --yes changelog-tools $CHANGELOG_FILE -c -s "<=${VERSION} >${PREV_TAG#v}" --format markdown)
@@ -195,7 +194,15 @@ jobs:
           echo "$CHANGES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          body: ${{ steps.notes.outputs.notes }}
+      - name: Edit GitHub Release
+        run: | #shell
+          VERSION=${GITHUB_REF#refs/tags/v}
+          RELEASE_ID=$(curl -s -H "Authorization: token ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}" \
+            | jq -r '.id')
+          
+          curl -X PATCH \
+            -H "Authorization: token ${{ github.token }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}" \
+            -d "{\"body\": $(echo '${{ steps.notes.outputs.notes }}' | jq -R -s '.')}"
