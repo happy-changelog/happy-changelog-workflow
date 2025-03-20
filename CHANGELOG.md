@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.8
+### Changed
+* Create initial release from all previous tags
+
 ## v0.1.7
 ### Changed
 * Use PAT to access last release
