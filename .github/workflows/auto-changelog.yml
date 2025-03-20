@@ -154,7 +154,7 @@ jobs:
           echo "pushing new tag"
           git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}
           git tag -a "v${{ steps.version.outputs.new_version }}" -m "Release v${{ steps.version.outputs.new_version }}"
-          git push -v origin "v${{ steps.version.outputs.new_version }}"
+          git push -v origin "v${{ steps.version.outputs.new_version }}" -u x-access-token:${{ secrets.PAT }}
           echo "pushed new tag"
 
   create-release:
