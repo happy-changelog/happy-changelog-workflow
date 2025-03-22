@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.1
+### Fixed
+* release notes addition works a bit better
+
 ## v0.4.0
 ### Added
 * Ability to have your own Release description before body is added
