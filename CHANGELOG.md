@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.1.0 - 2025-03-22
+### Added
+* input variable to
+* now supports  and 
+variables
+
 ## v1.0.1
 ### Fixed
 * Sections in examples are now appropriately split with additional newline
