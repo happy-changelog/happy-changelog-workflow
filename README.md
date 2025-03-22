@@ -2,6 +2,8 @@
 
 This repository uses an automated changelog management system that helps maintain consistent changelog entries and automates version bumping based on semantic versioning.
 
+**Disclaimer:** This workflow is in early stages of development. It is simple, but not very flexible yet. It goes without saying, that any contributions are welcome!
+
 [Skip to Project Setup Instructions ➡](#project-setup-instructions)
 
 ## How It Works
