@@ -1,0 +1,12 @@
+name: Edit Release Notes (Local)
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    uses: ./.github/workflows/edit-release.yml
+    with:
+      changelog-file: CHANGELOG.md
+      changelog-browser-url: https://rgembalik.gitlab.io/changelog-browser/

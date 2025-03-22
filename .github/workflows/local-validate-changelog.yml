@@ -1,0 +1,11 @@
+name: Validate PR Changelog (Local)
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  validate:
+    uses: ./.github/workflows/validate-changelog.yml
+    with:
+      changelog-file: CHANGELOG.md
