@@ -8,6 +8,8 @@ on:
 jobs:
   update:
     uses: ./.github/workflows/update-changelog.yml
+    permissions:
+      contents: write
     with:
       changelog-file: CHANGELOG.md
       enable-npm-version: true
