@@ -109,7 +109,7 @@ jobs:
             -o ${{ inputs.changelog-file }}
 
       - name: Update version
-        if: steps.changes.outputs.notes != '' && inputs.enable-npm-version
+        if: steps.changes.outputs.notes != ''
         id: version
         run: | #shell
           NEW_VERSION=$(npx --yes changelog-tools ${{ inputs.changelog-file }} | jq -r '.versions[0].version')
