@@ -36,6 +36,7 @@ jobs:
         id: notes
         env:
           CHANGELOG_BROWSER: ${{ inputs.changelog-browser-url }}
+          CHANGELOG_FILE: ${{ inputs.changelog-file }}
         run: | #shell
           VERSION=${GITHUB_REF#refs/tags/v}
           
