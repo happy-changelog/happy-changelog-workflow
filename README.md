@@ -17,6 +17,7 @@ When creating a pull request, you must include changelog notes in one of two for
 /changelog minor
 ### Added 
 * new feature X
+
 ### Updated 
 * component Y
 /-changelog
@@ -28,6 +29,7 @@ When creating a pull request, you must include changelog notes in one of two for
 
 ### Added 
 * new feature X
+
 ### Updated 
 * component Y
 
