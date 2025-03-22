@@ -1,0 +1,14 @@
+name: Update Changelog (Local)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update:
+    uses: ./.github/workflows/update-changelog.yml
+    with:
+      changelog-file: CHANGELOG.md
+      enable-npm-version: true
+      target-branch: main

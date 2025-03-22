@@ -1,22 +1,35 @@
 name: Validate PR changelog
 
 on:
-  pull_request:
-    types: [opened, edited, synchronize, reopened]
-  
-env:
-  CHANGELOG_FILE: CHANGELOG.md
+  workflow_call:
+    inputs:
+      changelog-file:
+        description: 'Path to the changelog file'
+        required: false
+        type: string
+        default: 'CHANGELOG.md'
+    outputs:
+      level:
+        description: 'Detected change level (patch, minor, major)'
+        value: ${{ jobs.validate-changelog.outputs.level }}
+      notes:
+        description: 'Extracted changelog notes'
+        value: ${{ jobs.validate-changelog.outputs.notes }}
 
 jobs:
   validate-changelog:
     runs-on: ubuntu-latest
     name: Validate PR description - changelog
+    outputs:
+      level: ${{ steps.extract-changelog.outputs.level }}
+      notes: ${{ steps.extract-changelog.outputs.note }}
     steps:
       - name: Extract changelog section
         id: extract-changelog
         env:
           PR_DESCRIPTION: ${{ github.event.pull_request.body }}
           DELIMITER: "EOF_CHANGELOG"
+          CHANGELOG_FILE: ${{ inputs.changelog-file }}
         run: | #shell
           if [[ -z "$PR_DESCRIPTION" ]]; then
             echo "Error: PR description is empty"

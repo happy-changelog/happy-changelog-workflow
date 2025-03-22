@@ -1,16 +1,29 @@
 name: Add release notes to GitHub release
 
 on:
-  release:
-    types: [published]
-
-env:
-  CHANGELOG_FILE: CHANGELOG.md
+  workflow_call:
+    inputs:
+      changelog-file:
+        description: 'Path to the changelog file'
+        required: false
+        type: string
+        default: 'CHANGELOG.md'
+      changelog-browser-url:
+        description: 'URL to the changelog browser'
+        required: false
+        type: string
+        default: 'https://rgembalik.gitlab.io/changelog-browser/'
+    outputs:
+      release_id:
+        description: 'ID of the updated release'
+        value: ${{ jobs.edit-release.outputs.release_id }}
 
 jobs:
   edit-release:
     runs-on: ubuntu-latest
     name: Add release notes to GitHub release
+    outputs:
+      release_id: ${{ steps.edit-release.outputs.release_id }}
     permissions:
       contents: write
     steps:
@@ -21,6 +34,8 @@ jobs:
 
       - name: Generate release notes
         id: notes
+        env:
+          CHANGELOG_BROWSER: ${{ inputs.changelog-browser-url }}
         run: | #shell
           VERSION=${GITHUB_REF#refs/tags/v}
           
