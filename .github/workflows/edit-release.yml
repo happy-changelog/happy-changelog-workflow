@@ -10,6 +10,7 @@ env:
 jobs:
   edit-release:
     runs-on: ubuntu-latest
+    name: Add release notes to GitHub release
     permissions:
       contents: write
     steps:
@@ -44,10 +45,23 @@ jobs:
         run: | #shell
           VERSION=${GITHUB_REF#refs/tags/v}
           
-          RELEASE_ID=$(curl -s -H "Authorization: token ${{ github.token }}" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}" \
-            | jq -r '.id')
-          
+          RELEASE="$(curl -s -H "Authorization: token ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}")"
+
+          RELEASE_ID=$(echo "$RELEASE" | jq -r '.id')
+          RELEASE_BODY=$(echo "$RELEASE" | jq -r '.body')
+
+          # if [changelog] marker present, replace it with body
+          # if not, and body has content, add 2 x newline and append body
+          # otherwise just use the changelog content as body
+          if [[ "$RELEASE_BODY" == *"[changelog]"* ]]; then
+            NOTES=$(echo "$RELEASE_BODY" | sed "s/\[changelog\]/$NOTES/")
+          elif [[ -n "$RELEASE_BODY" ]]; then
+            NOTES="$RELEASE_BODY\n\n$NOTES"
+          else
+            NOTES="$NOTES"
+          fi
+
           # Create JSON payload using jq --arg to properly handle the notes content
           JSON_PAYLOAD="$(jq -n --arg body "$NOTES" '{"body": $body}')"
           

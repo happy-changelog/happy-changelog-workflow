@@ -11,6 +11,7 @@ env:
 jobs:
   update-changelog:
     runs-on: ubuntu-latest
+    name: Update Changelog file and version
     permissions:
       contents: write
     steps:

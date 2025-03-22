@@ -10,6 +10,7 @@ env:
 jobs:
   validate-changelog:
     runs-on: ubuntu-latest
+    name: Validate PR description - changelog
     steps:
       - name: Extract changelog section
         id: extract-changelog
