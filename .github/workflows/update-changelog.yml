@@ -80,7 +80,7 @@ jobs:
           
           echo "notes=$(cat $TEMP_FILE)"
           echo "level=$CHANGE_LEVEL"
-          
+
           echo "level=$CHANGE_LEVEL" >> $GITHUB_OUTPUT
           echo "notes<<EOF" >> $GITHUB_OUTPUT
           cat $TEMP_FILE >> $GITHUB_OUTPUT
@@ -103,6 +103,9 @@ jobs:
         id: version
         run: | #shell
           NEW_VERSION=$(npx --yes changelog-tools ${{ inputs.changelog-file }} | jq -r '.versions[0].version')
+          echo "Updating version..."
+          echo "New version: $NEW_VERSION"
+          
           if [[ -f package.json ]] && ${{ inputs.enable-npm-version }}; then
             npm version "$NEW_VERSION" --no-git-tag-version
             git add package.json
