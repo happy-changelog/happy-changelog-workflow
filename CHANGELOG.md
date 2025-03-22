@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.0
+### Added
+* Add changelog browser url to the release notes
+
 ## v0.4.1
 ### Fixed
 * release notes addition works a bit better
