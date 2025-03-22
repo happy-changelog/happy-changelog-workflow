@@ -14,3 +14,4 @@ jobs:
       changelog-file: CHANGELOG.md
       enable-npm-version: true
       target-branch: main
+      version-title-template: 'v:{level} - {date}'

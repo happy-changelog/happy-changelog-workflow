@@ -133,6 +133,7 @@ If the PR validation fails, check:
             changelog-file: CHANGELOG.md
             enable-npm-version: true
             target-branch: main
+            version-title-template: 'v:{level} - {date}'
       ```
       - After publishing a release, update it's description, to contain changelog since previous release
       ```yaml
