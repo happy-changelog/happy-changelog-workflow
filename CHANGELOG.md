@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.1
+### Fixed
+* Sections in examples are now appropriately split with additional newline
+
 ## v1.0.0
 ### Changed
 * All workflows are now shared
