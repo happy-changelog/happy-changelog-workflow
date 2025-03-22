@@ -1,12 +1,5 @@
 # Changelog
 
-## v1.0.0
-### Changed
-* All workflows are now shared
-
-### Added
-* Added local run for the workflows to use them on the repo itself
-
 ## v0.5.0
 ### Added
 * Add changelog browser url to the release notes

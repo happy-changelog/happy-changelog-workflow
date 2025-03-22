@@ -2,6 +2,8 @@
 
 This repository uses an automated changelog management system that helps maintain consistent changelog entries and automates version bumping based on semantic versioning.
 
+[Skip to Project Setup Instructions ➡](#project-setup-instructions)
+
 ## How It Works
 
 The workflow automatically manages changelog entries through pull requests and releases.
