@@ -19,10 +19,10 @@ on:
         type: string
         default: 'main'
       version-title-template:
-        description: 'Template for version title (supports {level} and {date})'
+        description: 'Template for version title (supports {version} and {date})'
         required: false
         type: string
-        default: 'v:{level} - {date}'
+        default: 'v:{version} - {date}'
     outputs:
       new_version:
         description: 'New version number'
@@ -100,7 +100,7 @@ jobs:
           
           CURRENT_DATE=$(date '+%Y-%m-%d')
           TITLE_TEMPLATE="${{ inputs.version-title-template }}"
-          FORMATTED_TITLE="${TITLE_TEMPLATE/\{level\}/${{ steps.changes.outputs.level }}}"
+          FORMATTED_TITLE="${TITLE_TEMPLATE/\{version\}/${{ steps.changes.outputs.level }}}"
           FORMATTED_TITLE="${FORMATTED_TITLE/\{date\}/$CURRENT_DATE}"
           
           npx --yes changelog-tools add ${{ inputs.changelog-file }} \
