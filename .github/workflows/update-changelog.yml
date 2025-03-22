@@ -105,7 +105,7 @@ jobs:
           
           npx --yes changelog-tools add ${{ inputs.changelog-file }} \
             -t "$FORMATTED_TITLE" \
-            --new-changelog "${{ steps.changes.outputs.notes }}" \
+            --new-changelog '''${{ steps.changes.outputs.notes }}''' \
             -o ${{ inputs.changelog-file }}
 
       - name: Update version
