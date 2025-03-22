@@ -60,6 +60,9 @@ The change level must be one of:
    - When a new release is published from tag:
      - Release notes are automatically populated from the changelog since the last release
      - Previous changes are consolidated into the release notes
+     - Original release description is preserved in one of two ways:
+       - If `[changelog]` marker is present in description, changelog entries replace the marker
+       - Otherwise, changelog entries are appended after the original description
 
 ![](./docs/auto-populated-release.png)
 
@@ -84,10 +87,64 @@ If the PR validation fails, check:
    - Under "Pull Requests", enable "Allow squash merging"
    - Check "Default to pull request title and description"
    
-2. **Add Workflow Files**
+2. **Add Local Workflow Files**
    - Create `.github/workflows` directory
    - Add the following workflow files:
-     - `auto-changelog.yml` - Workflow file
+      - Enforce the PR description format to match what we can detect:
+      ```yaml
+         # .github/workflows/validate-changelog.yml
+      name: Validate PR Changelog
+      
+      on:
+      pull_request:
+         types: [opened, edited, synchronize, reopened]
+      
+      jobs:
+      validate:
+         uses: rgembalik/auto-changelog/.github/workflows/validate-changelog.yml@v0.5.0
+         permissions:
+            pull-requests: read
+            contents: read
+         with:
+            changelog-file: CHANGELOG.md
+      ```
+      - Update changelog and `package.json` after merge/commit into `main`
+      ```yaml
+         # .github/workflows/update-changelog.yml
+      name: Update Changelog
+      
+      on:
+      push:
+         branches:
+            - main
+      
+      jobs:
+      update:
+         uses: rgembalik/auto-changelog/.github/workflows/update-changelog.yml@v0.5.0
+         permissions:
+            contents: write
+         with:
+            changelog-file: CHANGELOG.md
+            enable-npm-version: true
+            target-branch: main
+      ```
+      - After publishing a release, update it's description, to contain changelog since previous release
+      ```yaml
+         # .github/workflows/edit-release.yml
+      name: Edit Release Notes
+      
+      on:
+      release:
+         types: [published]
+      
+      jobs:
+      release:
+         uses: rgembalik/auto-changelog/.github/workflows/edit-release.yml@v0.5.0
+         permissions:
+            contents: write
+         with:
+            changelog-file: CHANGELOG.md
+      ```
 
 3. **Configure Branch Protection**
    - Go to Settings > Branches
