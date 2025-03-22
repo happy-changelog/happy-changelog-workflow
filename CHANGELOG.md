@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.1.0 - 2025-03-22
+### Fixed
+* incorrect update to changelog file
+
+### Added
+* `version-title-template` input variable to `update-changelog.yml`
+* `version-title-template` now supports `{version}` and `{date}`
+variables
+
 ## v1.0.1
 ### Fixed
 * Sections in examples are now appropriately split with additional newline
