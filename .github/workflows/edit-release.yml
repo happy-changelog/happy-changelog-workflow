@@ -57,7 +57,7 @@ jobs:
           if [[ "$RELEASE_BODY" == *"[changelog]"* ]]; then
             NOTES=$(echo "$RELEASE_BODY" | sed "s/\[changelog\]/$NOTES/")
           elif [[ -n "$RELEASE_BODY" ]]; then
-            NOTES="$RELEASE_BODY\n\n$NOTES"
+            NOTES=$(echo -e "${RELEASE_BODY}\n\n${NOTES}")
           else
             NOTES="$NOTES"
           fi
