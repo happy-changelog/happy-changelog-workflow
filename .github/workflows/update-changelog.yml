@@ -49,6 +49,9 @@ jobs:
           else
             GIT_RANGE="HEAD"
           fi
+
+          echo "Previous tag: $PREVIOUS_TAG"
+          echo "Git range: $GIT_RANGE"
           
           CHANGE_LEVEL="patch"
           TEMP_FILE=$(mktemp)
@@ -74,6 +77,9 @@ jobs:
               echo "$NOTE" >> $TEMP_FILE
             fi
           done
+          
+          echo "notes=$(cat $TEMP_FILE)"
+          echo "level=$CHANGE_LEVEL"
           
           echo "level=$CHANGE_LEVEL" >> $GITHUB_OUTPUT
           echo "notes<<EOF" >> $GITHUB_OUTPUT
