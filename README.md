@@ -15,7 +15,7 @@ The workflow automatically manages changelog entries through pull requests and r
 When creating a pull request, you must include changelog notes in one of two formats:
 
 1. Using changelog tags:
-```
+```markdown
 /changelog minor
 ### Added 
 * new feature X
@@ -26,7 +26,7 @@ When creating a pull request, you must include changelog notes in one of two for
 ```
 
 2. Using details element:
-```
+```markdown
 <details><summary>Changelog minor</summary>
 
 ### Added 
