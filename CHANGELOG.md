@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.0
+### Added
+* Ability to have your own Release description before body is added
+* Added descriptive names for workflow steps
+
 ## v0.3.1
 ### Changed
 * Changelog workflow was now split into separate files depending on when
