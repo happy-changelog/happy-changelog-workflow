@@ -18,6 +18,11 @@ on:
         required: false
         type: string
         default: 'main'
+      version-title-template:
+        description: 'Template for version title (supports {version} and {date})'
+        required: false
+        type: string
+        default: 'v:{version} - {date}'
     outputs:
       new_version:
         description: 'New version number'
@@ -93,13 +98,18 @@ jobs:
             echo "# Changelog" > ${{ inputs.changelog-file }}
           fi
           
+          CURRENT_DATE=$(date '+%Y-%m-%d')
+          TITLE_TEMPLATE="${{ inputs.version-title-template }}"
+          FORMATTED_TITLE="${TITLE_TEMPLATE/\{version\}/${{ steps.changes.outputs.level }}}"
+          FORMATTED_TITLE="${FORMATTED_TITLE/\{date\}/$CURRENT_DATE}"
+          
           npx --yes changelog-tools add ${{ inputs.changelog-file }} \
-            -t "v:${{ steps.changes.outputs.level }}" \
+            -t "$FORMATTED_TITLE" \
             --new-changelog "${{ steps.changes.outputs.notes }}" \
             -o ${{ inputs.changelog-file }}
 
       - name: Update version
-        if: steps.changes.outputs.notes != '' && inputs.enable-npm-version
+        if: steps.changes.outputs.notes != ''
         id: version
         run: | #shell
           NEW_VERSION=$(npx --yes changelog-tools ${{ inputs.changelog-file }} | jq -r '.versions[0].version')

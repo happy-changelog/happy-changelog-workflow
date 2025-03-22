@@ -61,7 +61,7 @@ jobs:
 
       - name: Validate changelog content
         run: | #shell
-          NOTE="${{ steps.extract-changelog.outputs.note }}"
+          NOTE='''${{ steps.extract-changelog.outputs.note }}'''
           LEVEL="${{ steps.extract-changelog.outputs.level }}"
           
           if [[ -z "$NOTE" ]]; then
