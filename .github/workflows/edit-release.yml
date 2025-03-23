@@ -65,6 +65,10 @@ jobs:
           NOTES: ${{ steps.notes.outputs.notes }}
         run: | #shell
           VERSION=${GITHUB_REF#refs/tags/v}
+
+          echo "Current notes"
+          echo "$NOTES"
+          exit 1
           
           RELEASE="$(curl -s -H "Authorization: token ${{ github.token }}" \
             "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}")"

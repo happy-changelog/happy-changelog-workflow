@@ -1,6 +1,5 @@
 # Changelog
 
-## v1.2.0 - 2025-03-23
 ## v1.1.0 - 2025-03-22
 ### Fixed
 * incorrect update to changelog file

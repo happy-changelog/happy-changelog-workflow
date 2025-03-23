@@ -102,6 +102,11 @@ jobs:
           if [[ ! -f ${{ inputs.changelog-file }} ]]; then
             echo "# Changelog" > ${{ inputs.changelog-file }}
           fi
+
+          echo "Current notes"
+          echo "$NOTES"
+          exit 1
+          
           
           CURRENT_DATE=$(date '+%Y-%m-%d')
           TITLE_TEMPLATE="${{ inputs.version-title-template }}"
