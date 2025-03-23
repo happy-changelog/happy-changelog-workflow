@@ -120,7 +120,7 @@ jobs:
           echo "New version: $NEW_VERSION"
           
           if [[ -f package.json ]] && ${{ inputs.enable-npm-version }}; then
-            npm version "$NEW_VERSION" --no-git-tag-version
+            npm version "$NEW_VERSION" --no-git-tag-version --allow-same-version
             git add package.json
           fi
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT

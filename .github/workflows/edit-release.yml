@@ -46,14 +46,14 @@ jobs:
             | jq -r "[.[].tag_name] | select(length > 1) | .[1] // empty")
           
           if [[ -n "$PREV_TAG" ]]; then
-            CHANGES=$(npx --yes changelog-tools $CHANGELOG_FILE -c -s "<=${VERSION} >${PREV_TAG#v}" --format markdown)
+            CHANGES=$(npx --yes changelog-tools $CHANGELOG_FILE --no-strip-markdown -c -s "<=${VERSION} >${PREV_TAG#v}" --format markdown)
             # Create changelog browser URL
             CHANGELOG_URL="https://raw.githubusercontent.com/${{ github.repository }}/v${VERSION}/${CHANGELOG_FILE}"
             CHANGELOG_ENCODED_URL=$(echo -n "${CHANGELOG_URL}" | jq -srR @uri)
             CHANGELOG_LINK="## [${PREV_TAG#v}..${VERSION}](https://rgembalik.gitlab.io/changelog-browser/?url=${CHANGELOG_ENCODED_URL}&start=${PREV_TAG#v}&end=${VERSION}&include-start=0)"
             NOTES=$(echo -e "${CHANGELOG_LINK}\n\n${CHANGES}")
           else
-            NOTES=$(npx --yes changelog-tools $CHANGELOG_FILE -c -s "<=${VERSION}" --format markdown)
+            NOTES=$(npx --yes changelog-tools $CHANGELOG_FILE --no-strip-markdown -c -s "<=${VERSION}" --format markdown)
           fi
           
           echo "notes<<EOF" >> $GITHUB_OUTPUT
