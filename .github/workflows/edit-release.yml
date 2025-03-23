@@ -84,10 +84,6 @@ jobs:
             NOTES="$NOTES"
           fi
 
-          echo "Current notes"
-          echo "$NOTES"
-          exit 1
-
           # Create JSON payload using jq --arg to properly handle the notes content
           JSON_PAYLOAD="$(jq -n --arg body "$NOTES" '{"body": $body}')"
           
