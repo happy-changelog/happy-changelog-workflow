@@ -61,7 +61,9 @@ jobs:
 
       - name: Validate changelog content
         run: | #shell
-          NOTE='''${{ steps.extract-changelog.outputs.note }}'''
+          IFS='' read -r -d '' NOTE <<'EOF_NOTE'
+          ${{ steps.extract-changelog.outputs.note }}
+          EOF_NOTE
           LEVEL="${{ steps.extract-changelog.outputs.level }}"
           
           if [[ -z "$NOTE" ]]; then
