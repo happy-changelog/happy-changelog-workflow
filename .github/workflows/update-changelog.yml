@@ -90,9 +90,9 @@ jobs:
           echo "level=$CHANGE_LEVEL"
 
           echo "level=$CHANGE_LEVEL" >> $GITHUB_OUTPUT
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "notes<<EOF_CHANGELOG" >> $GITHUB_OUTPUT
           cat $TEMP_FILE >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "EOF_CHANGELOG" >> $GITHUB_OUTPUT
 
       - name: Update changelog file
         if: steps.changes.outputs.notes != ''
@@ -105,10 +105,11 @@ jobs:
           TITLE_TEMPLATE="${{ inputs.version-title-template }}"
           FORMATTED_TITLE="${TITLE_TEMPLATE/\{version\}/${{ steps.changes.outputs.level }}}"
           FORMATTED_TITLE="${FORMATTED_TITLE/\{date\}/$CURRENT_DATE}"
+          NOTE='''${{ steps.changes.outputs.notes }}'''
           
           npx --yes changelog-tools add ${{ inputs.changelog-file }} \
             -t "$FORMATTED_TITLE" \
-            --new-changelog '''${{ steps.changes.outputs.notes }}''' \
+            --new-changelog "$NOTE" \
             -o ${{ inputs.changelog-file }}
 
       - name: Update version
