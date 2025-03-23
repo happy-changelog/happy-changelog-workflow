@@ -1,16 +1,5 @@
 # Changelog
 
-## v1.2.0 - 2025-03-23
-### Changed
-* use changelog-tools's `--no-strip-markdown` and npms `--allow-same-version`
-
-### Fixed
-* jobs now use direct env assignement for `NOTE`
-* Fixed incirrect handling of special characters
-
-### Added
-* update-changelog job will now set concurrency so that there are no parallel jobs for changelog on `target-branch` file.
-
 ## v1.1.0 - 2025-03-22
 ### Fixed
 * incorrect update to changelog file

@@ -65,10 +65,10 @@ jobs:
         run: | #shell
           LEVEL="${{ steps.extract-changelog.outputs.level }}"
           
-          if [[ -z "$NOTE" ]]; then
+          if [[ -z "$NOTES" ]]; then
             echo "Error: No changelog notes found"
             exit 1
           fi
           
           echo "✅ Valid changelog found ($LEVEL)"
-          echo "$NOTE"
+          echo "$NOTES"
