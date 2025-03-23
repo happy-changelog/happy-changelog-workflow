@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.2.0 - 2025-03-23
+### Changed
+* debug what happens with the notes that they disappear
+* use changelog-tools's `--no-strip-markdown` and npms `--allow-same-version`
+
+### Fixed
+* Drop IFS read in favour of direct env assignement for `NOTE`
+* jobs now use `read` and heredoc to ingest notes from other jobs
+* Fixed incirrect handling of special characters
+
+### Added
+* update-changelog job will now set concurrency so that there are no parallel jobs for changelog on `target-branch` file.
+
 ## v1.1.0 - 2025-03-22
 ### Fixed
 * incorrect update to changelog file
