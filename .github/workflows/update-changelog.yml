@@ -32,6 +32,9 @@ jobs:
   update-changelog:
     runs-on: ubuntu-latest
     name: Update Changelog file and version
+    concurrency:
+      group: ${{ github.workflow }}-${{ inputs.target-branch }}-${{ inputs.changelog-file }}
+      cancel-in-progress: true
     outputs:
       new_version: ${{ steps.version.outputs.new_version }}
     permissions:
