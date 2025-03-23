@@ -110,12 +110,8 @@ jobs:
           
           npx --yes changelog-tools add ${{ inputs.changelog-file }} \
             -t "$FORMATTED_TITLE" \
-            --new-changelog "$NOTE" \
+            --new-changelog "$NOTES" \
             -o ${{ inputs.changelog-file }}
-
-          echo "Current notes"
-          git diff
-          exit 1
 
       - name: Update version
         if: steps.changes.outputs.notes != ''

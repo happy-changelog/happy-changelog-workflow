@@ -66,9 +66,6 @@ jobs:
         run: | #shell
           VERSION=${GITHUB_REF#refs/tags/v}
 
-          echo "Current notes"
-          echo "$NOTES"
-          exit 1
           
           RELEASE="$(curl -s -H "Authorization: token ${{ github.token }}" \
             "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}")"
@@ -86,6 +83,10 @@ jobs:
           else
             NOTES="$NOTES"
           fi
+
+          echo "Current notes"
+          echo "$NOTES"
+          exit 1
 
           # Create JSON payload using jq --arg to properly handle the notes content
           JSON_PAYLOAD="$(jq -n --arg body "$NOTES" '{"body": $body}')"
