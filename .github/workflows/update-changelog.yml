@@ -103,11 +103,6 @@ jobs:
             echo "# Changelog" > ${{ inputs.changelog-file }}
           fi
 
-          echo "Current notes"
-          echo "$NOTES"
-          exit 1
-          
-          
           CURRENT_DATE=$(date '+%Y-%m-%d')
           TITLE_TEMPLATE="${{ inputs.version-title-template }}"
           FORMATTED_TITLE="${TITLE_TEMPLATE/\{version\}/${{ steps.changes.outputs.level }}}"
@@ -117,6 +112,10 @@ jobs:
             -t "$FORMATTED_TITLE" \
             --new-changelog "$NOTE" \
             -o ${{ inputs.changelog-file }}
+
+          echo "Current notes"
+          git diff
+          exit 1
 
       - name: Update version
         if: steps.changes.outputs.notes != ''
