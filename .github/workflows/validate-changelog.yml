@@ -60,10 +60,9 @@ jobs:
           } >> $GITHUB_OUTPUT
 
       - name: Validate changelog content
+        env:
+          NOTES: ${{ steps.extract-changelog.outputs.note }}
         run: | #shell
-          IFS='' read -r -d '' NOTE <<'EOF_NOTE'
-          ${{ steps.extract-changelog.outputs.note }}
-          EOF_NOTE
           LEVEL="${{ steps.extract-changelog.outputs.level }}"
           
           if [[ -z "$NOTE" ]]; then

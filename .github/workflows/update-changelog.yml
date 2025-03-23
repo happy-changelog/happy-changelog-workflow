@@ -96,6 +96,8 @@ jobs:
 
       - name: Update changelog file
         if: steps.changes.outputs.notes != ''
+        env:
+          NOTES: ${{ steps.changes.outputs.notes }}
         run: | #shell
           if [[ ! -f ${{ inputs.changelog-file }} ]]; then
             echo "# Changelog" > ${{ inputs.changelog-file }}
@@ -105,10 +107,7 @@ jobs:
           TITLE_TEMPLATE="${{ inputs.version-title-template }}"
           FORMATTED_TITLE="${TITLE_TEMPLATE/\{version\}/${{ steps.changes.outputs.level }}}"
           FORMATTED_TITLE="${FORMATTED_TITLE/\{date\}/$CURRENT_DATE}"
-          IFS='' read -r -d '' NOTE <<'EOF_NOTE'
-          ${{ steps.changes.outputs.notes }}
-          EOF_NOTE
-
+          
           npx --yes changelog-tools add ${{ inputs.changelog-file }} \
             -t "$FORMATTED_TITLE" \
             --new-changelog "$NOTE" \
