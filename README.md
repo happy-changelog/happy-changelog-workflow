@@ -12,30 +12,39 @@ The workflow automatically manages changelog entries through pull requests and r
 
 ### Adding Changelog Entries
 
-When creating a pull request, you must include changelog notes in one of two formats:
+This workflow supports 3 main extraction methods from PR description: **Command syntax**, **Markdown syntax**, and **Collapsible syntax**. In Command and markdown syntax variants, endint is optional. All variants are **case insensitive**.
 
-1. Using changelog tags:
+Command syntax
 ```markdown
-/changelog minor
-### Added 
-* new feature X
+/changelog [patch|minor|major]
 
-### Updated 
-* component Y
-/-changelog
+### Added
+* features
+<!-- and so on -->
+
+/-changelog <!-- optional - if not present, we'll grab everything after command start -->
 ```
 
-2. Using details element:
+Markdown syntax
 ```markdown
-<details><summary>Changelog minor</summary>
+## Changelog [patch|minor|major]
 
-### Added 
-* new feature X
+### Added
+* features
+<!-- and so on -->
 
-### Updated 
-* component Y
+--- <!-- optional - if not present, we'll grab everything after Changelog header -->
+```
 
-</details>
+Collapsed `details` syntax
+```markdown
+<details><summary>Changelog [patch|minor|major]</summary>
+
+### Added
+* features
+<!-- and so on -->
+
+<details>
 ```
 
 The change level must be one of:
@@ -107,7 +116,7 @@ If the PR validation fails, check:
       
       jobs:
       validate:
-         uses: happy-changelog/happy-changelog-workflow/.github/workflows/validate-changelog.yml@v1.2.0
+         uses: happy-changelog/happy-changelog-workflow/.github/workflows/validate-changelog.yml@v1.3.0
          permissions:
             pull-requests: read
             contents: read
@@ -126,7 +135,7 @@ If the PR validation fails, check:
       
       jobs:
       update:
-         uses: happy-changelog/happy-changelog-workflow/.github/workflows/update-changelog.yml@v1.2.0
+         uses: happy-changelog/happy-changelog-workflow/.github/workflows/update-changelog.yml@v1.3.0
          permissions:
             contents: write
          with:
@@ -146,7 +155,7 @@ If the PR validation fails, check:
       
       jobs:
       release:
-         uses: happy-changelog/happy-changelog-workflow/.github/workflows/edit-release.yml@v1.2.0
+         uses: happy-changelog/happy-changelog-workflow/.github/workflows/edit-release.yml@v1.3.0
          permissions:
             contents: write
          with:

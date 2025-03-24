@@ -51,6 +51,116 @@ jobs:
       - name: Extract changes since last tag
         id: changes
         run: | #shell
+          function decho() {
+            if [ ! -z "$CHANGELOG_DEBUG" ]; then
+              echo "Debug:" "$@" 1>&2
+            fi
+          }
+
+          function extract_section() {
+            local SOURCE_TEXT=$1
+            
+            if echo "$SOURCE_TEXT" | grep -qi '/changelog'; then
+              decho "found /changelog"
+              if echo "$SOURCE_TEXT" | grep -qi '/-changelog'; then
+                decho "found /-changelog"
+                RAW_CHANGELOG_SECTION=`echo "$SOURCE_TEXT" | sed -n '/\/changelog/I,/\/-changelog/Ip'`
+              else
+                decho "fallback without /-changelog"
+                RAW_CHANGELOG_SECTION=`echo "$SOURCE_TEXT" | sed -n '/\/changelog/I,$p'`
+              fi
+            else
+              decho "no /changelog found"
+              RAW_CHANGELOG_SECTION=
+            fi
+
+            # If no changelog section found, try getting it from ## Changelog and ---
+            if [ -z "$RAW_CHANGELOG_SECTION" ]; then
+              decho "starting ## Changelog and --- checks"
+              if echo "$SOURCE_TEXT" | grep -qi '## Changelog'; then
+                decho "found ## Changelog"
+                if echo "$SOURCE_TEXT" | grep -q -- '---'; then
+                  decho "found ---"
+                  RAW_CHANGELOG_SECTION=`echo "$SOURCE_TEXT" | sed -n '/## Changelog/I,/---/p'`
+                  if [ -z "$RAW_CHANGELOG_SECTION" ]; then
+                    decho "fallback without ---"
+                    RAW_CHANGELOG_SECTION=`echo "$SOURCE_TEXT" | sed -n '/## Changelog/I,$p'`
+                  fi
+                else
+                  decho "fallback without ---"
+                  RAW_CHANGELOG_SECTION=`echo "$SOURCE_TEXT" | sed -n '/## Changelog/I,$p'`
+                fi
+              else
+                decho "no ## Changelog found"
+                RAW_CHANGELOG_SECTION=
+              fi
+            fi
+
+            # If no changelog section found, try getting it from <details><summary>Changelog {patch|minor|major}</summary>...</details> tag
+            if [ -z "$RAW_CHANGELOG_SECTION" ]; then
+              decho "starting <details><summary>Changelog checks"
+              if echo "$SOURCE_TEXT" | grep -qi '<details><summary>Changelog'; then
+                decho "found <details><summary>Changelog"
+                RAW_CHANGELOG_SECTION=`echo "$SOURCE_TEXT" | sed -n '/<details><summary>Changelog/I,/<\/details>/Ip'`
+              fi
+            fi
+
+            if [ -z "$RAW_CHANGELOG_SECTION" ]; then
+              echo -e "No changelog section. Use /changelog {patch|minor|major} followed by your changelog notes" 1>&2
+              if [ ! -z "$EXAMPLE_CHANGELOG" ]; then
+                echo -e "Example changelog section:\n$EXAMPLE_CHANGELOG" 1>&2
+              fi
+              exit 1
+            fi
+            echo "$RAW_CHANGELOG_SECTION"
+          }
+
+          function extract_changelog() {
+            local SOURCE_TEXT=$1
+            local CHANGELOG_NOTE=`echo "$SOURCE_TEXT" | grep -vi '/changelog' | grep -vi '/-changelog' | grep -vi '<details><summary>Changelog' | grep -vi '</details>' | grep -vi '## Changelog' | grep -v -- '---'`
+
+            if [ -z "$CHANGELOG_NOTE" ]; then
+              echo -e "No changelog notes found changelog section. Use /changelog {patch|minor|major} followed by your changelog notes" 1>&2
+              if [ ! -z "$EXAMPLE_CHANGELOG" ]; then
+                echo -e "Example changelog section:\n$EXAMPLE_CHANGELOG" 1>&2
+              fi
+              exit 1
+            fi
+
+            echo "$CHANGELOG_NOTE"
+          }
+
+          function extract_change_level() {
+            local SOURCE_TEXT=$1
+            if echo "$SOURCE_TEXT" | grep -i '/changelog' | grep -qiE 'patch|minor|major'; then
+              CHANGE_LEVEL=`echo "$SOURCE_TEXT" | grep -i '/changelog' | grep -iEo 'patch|minor|major'`
+            elif echo "$SOURCE_TEXT" | grep -i '## Changelog' | grep -qiE 'patch|minor|major'; then
+              CHANGE_LEVEL=`echo "$SOURCE_TEXT" | grep -i '## Changelog' | grep -iEo 'patch|minor|major'`
+            elif echo "$SOURCE_TEXT" | grep -i '<details><summary>Changelog' | grep -qiE 'patch|minor|major'; then
+              CHANGE_LEVEL=`echo "$SOURCE_TEXT" | grep -i '<details><summary>Changelog' | grep -iEo 'patch|minor|major'`
+            else
+              CHANGE_LEVEL="${DEFAULT_CHANGE_LEVEL:-patch}"
+            fi
+            echo "$CHANGE_LEVEL"
+          }
+
+           function get_max_change_level() {
+            local CHANGE_LEVEL=$1
+            local OTHER_CHANGE_LEVEL=$2
+
+            if [ -z "$CHANGE_LEVEL" ] && [ ! -z "$OTHER_CHANGE_LEVEL" ]; then
+              CHANGE_LEVEL="$OTHER_CHANGE_LEVEL"
+            elif [ "$CHANGE_LEVEL" == "patch" ]; then
+              # if change level is patch, set commit change level
+              CHANGE_LEVEL="$OTHER_CHANGE_LEVEL"
+            elif [ "$CHANGE_LEVEL" == "minor" ] && [ "$OTHER_CHANGE_LEVEL" == "major" ]; then
+              # if change level is minor, and current is major, set current
+              CHANGE_LEVEL="$OTHER_CHANGE_LEVEL"
+            fi
+            
+            echo "$CHANGE_LEVEL"
+          }
+
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           if [[ -n "$PREVIOUS_TAG" ]]; then
             GIT_RANGE="${PREVIOUS_TAG}..HEAD"
@@ -66,24 +176,18 @@ jobs:
           
           for COMMIT in $(git rev-list $GIT_RANGE); do
             COMMIT_MSG=$(git log --format=%B -n 1 $COMMIT)
-            
-            if echo "$COMMIT_MSG" | grep -q '/changelog\|<details><summary>Changelog'; then
-              if echo "$COMMIT_MSG" | grep -q '/changelog'; then
-                NOTE=$(echo "$COMMIT_MSG" | sed -n '/\/changelog/,/\/-changelog/p' | grep -v '/changelog')
-                LEVEL=$(echo "$COMMIT_MSG" | grep '/changelog' | grep -Eo 'patch|minor|major' || echo "patch")
-              else
-                NOTE=$(echo "$COMMIT_MSG" | awk '/<details><summary>Changelog/,/<\/details>/' | sed '1d;$d')
-                LEVEL=$(echo "$COMMIT_MSG" | grep '<details><summary>Changelog' | grep -Eo 'patch|minor|major' || echo "patch")
-              fi
-              
-              if [[ "$LEVEL" == "major" ]] || [[ "$CHANGE_LEVEL" == "patch" ]]; then
-                CHANGE_LEVEL="$LEVEL"
-              elif [[ "$LEVEL" == "minor" ]] && [[ "$CHANGE_LEVEL" == "patch" ]]; then
-                CHANGE_LEVEL="minor"
-              fi
-              
-              echo "$NOTE" >> $TEMP_FILE
+
+            if ! RAW_CHANGELOG_SECTION=`extract_section "$COMMIT_MSG"`; then
+              continue;
             fi
+            if ! CHANGELOG_NOTE=`extract_changelog "$RAW_CHANGELOG_SECTION"`; then
+              continue;
+            fi
+            COMMIT_CHANGE_LEVEL=`extract_change_level "$RAW_CHANGELOG_SECTION"`
+              
+            CHANGE_LEVEL=`get_max_change_level "$CHANGE_LEVEL" "$COMMIT_CHANGE_LEVEL"`
+
+            echo "$NOTE" >> $TEMP_FILE
           done
           
           echo "notes=$(cat $TEMP_FILE)"
