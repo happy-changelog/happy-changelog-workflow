@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.3.0 - 2025-03-24
+### Added
+* Support for markdown pattern: `Changelog` header as block start, and
+horizontal line as optional block end
+
+### Changed
+* Patterns now are not case sensitive
+* All major code is now aligned with gitlab ci
+
 ## v1.2.0 - 2025-03-23
 ### Changed
 * use changelog-tools's `--no-strip-markdown` and npms `--allow-same-version`
