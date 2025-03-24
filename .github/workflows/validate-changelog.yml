@@ -31,31 +31,112 @@ jobs:
           DELIMITER: "EOF_CHANGELOG"
           CHANGELOG_FILE: ${{ inputs.changelog-file }}
         run: | #shell
+          function decho() {
+            if [ ! -z "$CHANGELOG_DEBUG" ]; then
+              echo "Debug:" "$@" 1>&2
+            fi
+          }
+
+          function extract_section() {
+            local SOURCE_TEXT=$1
+            
+            if echo "$SOURCE_TEXT" | grep -qi '/changelog'; then
+              decho "found /changelog"
+              if echo "$SOURCE_TEXT" | grep -qi '/-changelog'; then
+                decho "found /-changelog"
+                RAW_CHANGELOG_SECTION=`echo "$SOURCE_TEXT" | sed -n '/\/changelog/I,/\/-changelog/Ip'`
+              else
+                decho "fallback without /-changelog"
+                RAW_CHANGELOG_SECTION=`echo "$SOURCE_TEXT" | sed -n '/\/changelog/I,$p'`
+              fi
+            else
+              decho "no /changelog found"
+              RAW_CHANGELOG_SECTION=
+            fi
+
+            # If no changelog section found, try getting it from ## Changelog and ---
+            if [ -z "$RAW_CHANGELOG_SECTION" ]; then
+              decho "starting ## Changelog and --- checks"
+              if echo "$SOURCE_TEXT" | grep -qi '## Changelog'; then
+                decho "found ## Changelog"
+                if echo "$SOURCE_TEXT" | grep -q -- '---'; then
+                  decho "found ---"
+                  RAW_CHANGELOG_SECTION=`echo "$SOURCE_TEXT" | sed -n '/## Changelog/I,/---/p'`
+                  if [ -z "$RAW_CHANGELOG_SECTION" ]; then
+                    decho "fallback without ---"
+                    RAW_CHANGELOG_SECTION=`echo "$SOURCE_TEXT" | sed -n '/## Changelog/I,$p'`
+                  fi
+                else
+                  decho "fallback without ---"
+                  RAW_CHANGELOG_SECTION=`echo "$SOURCE_TEXT" | sed -n '/## Changelog/I,$p'`
+                fi
+              else
+                decho "no ## Changelog found"
+                RAW_CHANGELOG_SECTION=
+              fi
+            fi
+
+            # If no changelog section found, try getting it from <details><summary>Changelog {patch|minor|major}</summary>...</details> tag
+            if [ -z "$RAW_CHANGELOG_SECTION" ]; then
+              decho "starting <details><summary>Changelog checks"
+              if echo "$SOURCE_TEXT" | grep -qi '<details><summary>Changelog'; then
+                decho "found <details><summary>Changelog"
+                RAW_CHANGELOG_SECTION=`echo "$SOURCE_TEXT" | sed -n '/<details><summary>Changelog/I,/<\/details>/Ip'`
+              fi
+            fi
+
+            if [ -z "$RAW_CHANGELOG_SECTION" ]; then
+              echo -e "No changelog section. Use /changelog {patch|minor|major} followed by your changelog notes" 1>&2
+              if [ ! -z "$EXAMPLE_CHANGELOG" ]; then
+                echo -e "Example changelog section:\n$EXAMPLE_CHANGELOG" 1>&2
+              fi
+              exit 1
+            fi
+            echo "$RAW_CHANGELOG_SECTION"
+          }
+
+          function extract_changelog() {
+            local SOURCE_TEXT=$1
+            local CHANGELOG_NOTE=`echo "$SOURCE_TEXT" | grep -vi '/changelog' | grep -vi '/-changelog' | grep -vi '<details><summary>Changelog' | grep -vi '</details>' | grep -vi '## Changelog' | grep -v -- '---'`
+
+            if [ -z "$CHANGELOG_NOTE" ]; then
+              echo -e "No changelog notes found changelog section. Use /changelog {patch|minor|major} followed by your changelog notes" 1>&2
+              if [ ! -z "$EXAMPLE_CHANGELOG" ]; then
+                echo -e "Example changelog section:\n$EXAMPLE_CHANGELOG" 1>&2
+              fi
+              exit 1
+            fi
+
+            echo "$CHANGELOG_NOTE"
+          }
+
+          function extract_change_level() {
+            local SOURCE_TEXT=$1
+            if echo "$SOURCE_TEXT" | grep -i '/changelog' | grep -qiE 'patch|minor|major'; then
+              CHANGE_LEVEL=`echo "$SOURCE_TEXT" | grep -i '/changelog' | grep -iEo 'patch|minor|major'`
+            elif echo "$SOURCE_TEXT" | grep -i '## Changelog' | grep -qiE 'patch|minor|major'; then
+              CHANGE_LEVEL=`echo "$SOURCE_TEXT" | grep -i '## Changelog' | grep -iEo 'patch|minor|major'`
+            elif echo "$SOURCE_TEXT" | grep -i '<details><summary>Changelog' | grep -qiE 'patch|minor|major'; then
+              CHANGE_LEVEL=`echo "$SOURCE_TEXT" | grep -i '<details><summary>Changelog' | grep -iEo 'patch|minor|major'`
+            else
+              CHANGE_LEVEL="${DEFAULT_CHANGE_LEVEL:-patch}"
+            fi
+            echo "$CHANGE_LEVEL"
+          }
+
           if [[ -z "$PR_DESCRIPTION" ]]; then
             echo "Error: PR description is empty"
             exit 1
           fi
           
-          if echo "$PR_DESCRIPTION" | grep -q '/changelog'; then
-            if echo "$PR_DESCRIPTION" | grep -q '/-changelog'; then
-              RAW_CHANGELOG="$(echo "$PR_DESCRIPTION" | awk '/\/changelog/,/\/-changelog/' | sed '1d;$d')"
-            else
-              RAW_CHANGELOG="$(echo "$PR_DESCRIPTION" | awk '/\/changelog/,0' | sed '1d')"
-            fi
-          elif echo "$PR_DESCRIPTION" | grep -q '<details><summary>Changelog'; then
-            RAW_CHANGELOG="$(echo "$PR_DESCRIPTION" | awk '/<details><summary>Changelog/,/<\/details>/' | sed '1d;$d')"
-          else
-            echo "Error: No changelog section found"
-            echo "Use /changelog {patch|minor|major} followed by your changelog notes"
-            exit 1
-          fi
-          
-          CHANGE_LEVEL="$(echo "$PR_DESCRIPTION" | grep -E '/changelog|<details>' | grep -Eo 'patch|minor|major' || echo "patch")"
+          RAW_CHANGELOG_SECTION=`extract_section "$CI_MERGE_REQUEST_DESCRIPTION"`
+          CHANGELOG_NOTE=`extract_changelog "$RAW_CHANGELOG_SECTION"`
+          COMMIT_CHANGE_LEVEL=`extract_change_level "$RAW_CHANGELOG_SECTION"`
           
           {
-            echo "level=$CHANGE_LEVEL"
+            echo "level=$COMMIT_CHANGE_LEVEL"
             echo "note<<$DELIMITER"
-            echo "$RAW_CHANGELOG"
+            echo "$CHANGELOG_NOTE"
             echo "$DELIMITER"
           } >> $GITHUB_OUTPUT
 
