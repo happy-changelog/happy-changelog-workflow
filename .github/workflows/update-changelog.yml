@@ -177,6 +177,8 @@ jobs:
           for COMMIT in $(git rev-list $GIT_RANGE); do
             COMMIT_MSG=$(git log --format=%B -n 1 $COMMIT)
 
+            echo "Commit: $COMMIT"
+
             if ! RAW_CHANGELOG_SECTION=`extract_section "$COMMIT_MSG"`; then
               continue;
             fi
@@ -184,6 +186,7 @@ jobs:
               continue;
             fi
             COMMIT_CHANGE_LEVEL=`extract_change_level "$RAW_CHANGELOG_SECTION"`
+            echo "Commit change level: $COMMIT_CHANGE_LEVEL"
               
             CHANGE_LEVEL=`get_max_change_level "$CHANGE_LEVEL" "$COMMIT_CHANGE_LEVEL"`
 
