@@ -129,7 +129,7 @@ jobs:
             exit 1
           fi
           
-          RAW_CHANGELOG_SECTION=`extract_section "$CI_MERGE_REQUEST_DESCRIPTION"`
+          RAW_CHANGELOG_SECTION=`extract_section "$PR_DESCRIPTION"`
           CHANGELOG_NOTE=`extract_changelog "$RAW_CHANGELOG_SECTION"`
           COMMIT_CHANGE_LEVEL=`extract_change_level "$RAW_CHANGELOG_SECTION"`
           
