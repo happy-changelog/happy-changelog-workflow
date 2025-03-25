@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.0 - 2025-03-25
+### Added
+* User can now add `error-on-template` input for `validate-changelog`
+which will return error if PR description contains PR template instead
+of actual Changelog and description
+
 ## v1.3.0 - 2025-03-24
 ### Added
 * Support for markdown pattern: `Changelog` header as block start, and
