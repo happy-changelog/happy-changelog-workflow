@@ -12,3 +12,4 @@ jobs:
       contents: read
     with:
       changelog-file: CHANGELOG.md
+      error-on-template: 'Changelog: patch|minor|major'

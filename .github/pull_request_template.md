@@ -1,17 +1,13 @@
 ## Description
 <!-- Provide a brief description of the changes in this PR -->
 
-<!-- Remove the comments and fill in changelog
-<details><summary>Changelog: minor</summary>
+## Changelog: patch|minor|major
 
 ### Added 
-* new feature X
+* 
+<!-- etc -->
 
-### Updated 
-* component Y
-
-</details>
--->
+---
 
 ## Related Issues
 <!-- Link any related issues here using #issue-number -->

@@ -8,6 +8,11 @@ on:
         required: false
         type: string
         default: 'CHANGELOG.md'
+      error-on-template:
+        description: 'Error message when provided MR template string is found in the description'
+        required: false
+        type: string
+        default: ''
     outputs:
       level:
         description: 'Detected change level (patch, minor, major)'
@@ -30,6 +35,7 @@ jobs:
           PR_DESCRIPTION: ${{ github.event.pull_request.body }}
           DELIMITER: "EOF_CHANGELOG"
           CHANGELOG_FILE: ${{ inputs.changelog-file }}
+          ERROR_ON_TEMPLATE: ${{ inputs.error-on-template }}
         run: | #shell
           function decho() {
             if [ ! -z "$CHANGELOG_DEBUG" ]; then
@@ -127,6 +133,13 @@ jobs:
           if [[ -z "$PR_DESCRIPTION" ]]; then
             echo "Error: PR description is empty"
             exit 1
+          fi
+
+          if [ ! -z "$ERROR_ON_TEMPLATE" ]; then
+            if echo "$PR_DESCRIPTION" | grep -qi -- "$ERROR_ON_TEMPLATE"; then
+              echo "Your PR description contains an MR template $ERROR_ON_TEMPLATE. Please fill out the description and include correct Changelog section in it." 1>&2
+              exit 1
+            fi
           fi
           
           RAW_CHANGELOG_SECTION=`extract_section "$PR_DESCRIPTION"`
