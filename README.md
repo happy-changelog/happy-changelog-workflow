@@ -60,6 +60,7 @@ The change level must be one of:
    - Validates the changelog entry format
    - Ensures changelog notes are present
    - Checks for valid change level
+   - Optionally, allows PR rejection if changelog is only a template (with `error-on-template` input)
 
 ![](./docs/pr-checks.png)
 
