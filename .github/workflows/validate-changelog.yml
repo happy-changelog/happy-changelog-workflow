@@ -136,8 +136,8 @@ jobs:
           fi
 
           if [ ! -z "$ERROR_ON_TEMPLATE" ]; then
-            if echo "$CI_MERGE_REQUEST_DESCRIPTION" | grep -qi -- "$ERROR_ON_TEMPLATE"; then
-              echo "Your MR description contains an MR template $ERROR_ON_TEMPLATE. Please fill out the description and include correct Changelog section in it." 1>&2
+            if echo "$PR_DESCRIPTION" | grep -qi -- "$ERROR_ON_TEMPLATE"; then
+              echo "Your PR description contains an MR template $ERROR_ON_TEMPLATE. Please fill out the description and include correct Changelog section in it." 1>&2
               exit 1
             fi
           fi
