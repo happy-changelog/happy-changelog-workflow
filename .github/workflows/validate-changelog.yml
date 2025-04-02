@@ -177,6 +177,13 @@ jobs:
           echo "✅ Valid changelog found ($LEVEL)"
           echo "$NOTES"
 
+      - name: Checkout repository
+        if: inputs.run-post-version-script-in-pr == true && inputs.post-version-script != ''
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
       - name: Preview version changes
         if: inputs.run-post-version-script-in-pr == true && inputs.post-version-script != ''
         env:
