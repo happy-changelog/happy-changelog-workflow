@@ -1,13 +1,5 @@
 # Changelog
 
-## v1.5.0 - 2025-04-02
-### Added
-* Added `post-version-script` input to various workflows to allow custom
-scripts to run after version updates.
-
-### Removed
-* Removed `.gitlab-ci.yml` from `.gitignore` as it is no longer needed.
-
 ## v1.4.0 - 2025-03-25
 ### Added
 * User can now add `error-on-template` input for `validate-changelog`

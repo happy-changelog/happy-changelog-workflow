@@ -243,6 +243,11 @@ jobs:
 
       - name: Run post-version script
         if: steps.changes.outputs.notes != '' && inputs.post-version-script != ''
+        env:
+          NEW_VERSION: ${{ steps.version.outputs.new_version }}
+          NEW_VERSION_CHANGES: ${{ steps.changes.outputs.notes }}
+          CHANGE_LEVEL: ${{ steps.changes.outputs.level }}
+          CHANGELOG_FILE: ${{ inputs.changelog-file }}
         run: |
           # Execute the post-version script if provided
           echo "Running post-version script..."
