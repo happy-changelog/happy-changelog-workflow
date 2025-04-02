@@ -24,7 +24,7 @@ on:
         type: string
         default: 'v:{version} - {date}'
       post-version-script:
-        description: 'Array of bash commands to execute after version update but before changes are committed. Available variables: $NEW_VERSION - new semantic version, $NEW_VERSION_CHANGES - changelog content for this version, $CHANGE_LEVEL - change level (patch/minor/major), $CHANGELOG_FILE - path to changelog file.'
+        description: 'Bash script to execute after version update but before changes are committed. Available variables: $NEW_VERSION - new semantic version, $NEW_VERSION_CHANGES - changelog content for this version, $CHANGE_LEVEL - change level (patch/minor/major), $CHANGELOG_FILE - path to changelog file.'
         required: false
         type: string
         default: ''
