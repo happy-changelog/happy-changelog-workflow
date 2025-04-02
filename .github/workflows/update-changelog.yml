@@ -23,6 +23,11 @@ on:
         required: false
         type: string
         default: 'v:{version} - {date}'
+      post-version-script:
+        description: 'Bash script to execute after version update but before changes are committed. Available variables: $NEW_VERSION - new semantic version, $NEW_VERSION_CHANGES - changelog content for this version, $CHANGE_LEVEL - change level (patch/minor/major), $CHANGELOG_FILE - path to changelog file.'
+        required: false
+        type: string
+        default: ''
     outputs:
       new_version:
         description: 'New version number'
@@ -223,6 +228,10 @@ jobs:
         id: version
         run: | #shell
           NEW_VERSION=$(npx --yes changelog-tools ${{ inputs.changelog-file }} | jq -r '.versions[0].version')
+          NEW_VERSION_CHANGES=$(npx --yes changelog-tools ${{ inputs.changelog-file }} | jq -r '.versions[0].body')
+          CHANGE_LEVEL="${{ steps.changes.outputs.level }}"
+          CHANGELOG_FILE="${{ inputs.changelog-file }}"
+          
           echo "Updating version..."
           echo "New version: $NEW_VERSION"
           
@@ -231,6 +240,13 @@ jobs:
             git add package.json
           fi
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Run post-version script
+        if: steps.changes.outputs.notes != '' && inputs.post-version-script != ''
+        run: |
+          # Execute the post-version script if provided
+          echo "Running post-version script..."
+          ${{ inputs.post-version-script }}
 
       - name: Commit changes
         if: steps.changes.outputs.notes != ''
