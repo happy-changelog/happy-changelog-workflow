@@ -13,6 +13,16 @@ on:
         required: false
         type: string
         default: ''
+      post-version-script:
+        description: 'Array of bash commands to execute after version update but before changes are committed. Available variables: $NEW_VERSION - new semantic version, $NEW_VERSION_CHANGES - changelog content for this version, $CHANGE_LEVEL - change level (patch/minor/major), $CHANGELOG_FILE - path to changelog file.'
+        required: false
+        type: string
+        default: ''
+      run-post-version-script-in-pr:
+        description: 'Whether to run post-version-script in PR validation job to preview changes'
+        required: false
+        type: boolean
+        default: true
     outputs:
       level:
         description: 'Detected change level (patch, minor, major)'
@@ -166,3 +176,50 @@ jobs:
           
           echo "✅ Valid changelog found ($LEVEL)"
           echo "$NOTES"
+
+      - name: Preview version changes
+        if: inputs.run-post-version-script-in-pr == true && inputs.post-version-script != ''
+        env:
+          NOTES: ${{ steps.extract-changelog.outputs.note }}
+          LEVEL: ${{ steps.extract-changelog.outputs.level }}
+          CHANGELOG_FILE: ${{ inputs.changelog-file }}
+        run: | #shell
+          # Create a temporary changelog file for preview
+          TEMP_CHANGELOG=$(mktemp)
+          if [ ! -f $CHANGELOG_FILE ]; then
+            echo "# Changelog" > $TEMP_CHANGELOG
+          else
+            cp $CHANGELOG_FILE $TEMP_CHANGELOG
+          fi
+          
+          # Add the new changelog entry
+          CURRENT_DATE=$(date '+%Y-%m-%d')
+          TITLE_TEMPLATE="v:{version} - {date}"
+          FORMATTED_TITLE="${TITLE_TEMPLATE/\{version\}/$LEVEL}"
+          FORMATTED_TITLE="${FORMATTED_TITLE/\{date\}/$CURRENT_DATE}"
+          
+          npx --yes changelog-tools add $TEMP_CHANGELOG \
+            -t "$FORMATTED_TITLE" \
+            --new-changelog "$NOTES" \
+            -o $TEMP_CHANGELOG
+          
+          # Calculate new version and changes
+          NEW_VERSION=$(npx --yes changelog-tools $TEMP_CHANGELOG | jq -r '.versions[0].version')
+          NEW_VERSION_CHANGES=$(npx --yes changelog-tools $TEMP_CHANGELOG | jq -r '.versions[0].body')
+          CHANGE_LEVEL=$LEVEL
+          
+          echo "Preview of changes that would be made:"
+          echo "New version would be: $NEW_VERSION"
+          echo "Changes would be:"
+          echo "$NEW_VERSION_CHANGES"
+          
+          # Run post-version script if enabled
+          if [ "${{ inputs.run-post-version-script-in-pr }}" == "true" ]; then
+            echo "Running post-version script preview..."
+            ${{ inputs.post-version-script }}
+          fi
+          
+          # Show git diff in collapsible section
+          echo "::group::Git changes preview"
+          git diff --cached
+          echo "::endgroup::"

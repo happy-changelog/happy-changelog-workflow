@@ -123,6 +123,15 @@ If the PR validation fails, check:
             contents: read
          with:
             changelog-file: CHANGELOG.md
+            # Optional: Reject PR if description contains template text
+            error-on-template: 'Changelog: patch|minor|major'
+            # Optional: Run custom script after version update
+            post-version-script: |
+              # Example: Update workflow references in documentation
+              # This script updates version references in README.md when a new version is released
+              REFERENCE_TO_UPDATE=happy-changelog/happy-changelog-workflow/.github/workflows/update-changelog.yml
+              sed -i "s|${REFERENCE_TO_UPDATE}@[a-zA-Z0-9._-]*|${REFERENCE_TO_UPDATE}@v${NEW_VERSION}|g" README.md
+              git add README.md
       ```
       - Update changelog and `package.json` after merge/commit into `main`
       ```yaml
@@ -144,6 +153,13 @@ If the PR validation fails, check:
             enable-npm-version: true
             target-branch: main
             version-title-template: 'v:{version} - {date}'
+            # Optional: Run custom script after version update
+            post-version-script: |
+              # Example: Update workflow references in documentation
+              # This script updates version references in README.md when a new version is released
+              REFERENCE_TO_UPDATE=happy-changelog/happy-changelog-workflow/.github/workflows/update-changelog.yml
+              sed -i "s|${REFERENCE_TO_UPDATE}@[a-zA-Z0-9._-]*|${REFERENCE_TO_UPDATE}@v${NEW_VERSION}|g" README.md
+              git add README.md
       ```
       - After publishing a release, update it's description, to contain changelog since previous release
       ```yaml

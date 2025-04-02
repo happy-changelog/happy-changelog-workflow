@@ -15,3 +15,9 @@ jobs:
       enable-npm-version: true
       target-branch: main
       version-title-template: 'v:{version} - {date}'
+      post-version-script: |
+        for WORKFLOW in "validate-changelog" "update-changelog" "release"; do
+          COMPONENT_PATH="happy-changelog/happy-changelog-workflow/.github/workflows/${WORKFLOW}.yml"
+          sed -i "s|${COMPONENT_PATH}@[a-zA-Z0-9._-]*|${COMPONENT_PATH}@v${NEW_VERSION}|g" README.md
+        done
+        git add README.md
