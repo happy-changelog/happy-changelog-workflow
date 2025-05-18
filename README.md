@@ -117,7 +117,7 @@ If the PR validation fails, check:
       
       jobs:
       validate:
-         uses: happy-changelog/happy-changelog-workflow/.github/workflows/validate-changelog.yml@v1.5.0
+         uses: happy-changelog/happy-changelog-workflow/.github/workflows/validate-changelog.yml@v1.6.0
          permissions:
             pull-requests: read
             contents: read
@@ -145,7 +145,7 @@ If the PR validation fails, check:
       
       jobs:
       update:
-         uses: happy-changelog/happy-changelog-workflow/.github/workflows/update-changelog.yml@v1.5.0
+         uses: happy-changelog/happy-changelog-workflow/.github/workflows/update-changelog.yml@v1.6.0
          permissions:
             contents: write
          with:
@@ -172,7 +172,7 @@ If the PR validation fails, check:
       
       jobs:
       release:
-         uses: happy-changelog/happy-changelog-workflow/.github/workflows/edit-release.yml@v1.5.0
+         uses: happy-changelog/happy-changelog-workflow/.github/workflows/edit-release.yml@v1.6.0
          permissions:
             contents: write
          with:
