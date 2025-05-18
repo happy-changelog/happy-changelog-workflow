@@ -197,3 +197,62 @@ When merging PRs:
 - Always use squash merge
 - The squash commit message must include the PR description to preserve changelog entries
 - The workflow will automatically extract changelog content from the commit message
+
+## Reverting a Release
+
+If you need to revert a release, follow these steps:
+
+1. **Remove the Release and Tag**
+   ```bash
+   # Delete the GitHub release through UI or API
+   # Delete local and remote tags
+   git tag -d v1.2.3          # Delete local tag
+   git push --delete origin v1.2.3  # Delete remote tag
+   ```
+
+2. **Revert Changelog Changes**
+   - Edit `CHANGELOG.md`
+   - Remove the version entry you want to revert
+
+3. **Push Required Fixes**
+   - Create a new PR (or commit to main if you dare) with necessary fixes and reverts in changelog file
+   - After mergin, your release will already contain the previous changelog changes
+   - This is crucial because:
+     - The workflow automatically creates tags on commits to the default branch
+     - Without fixes, the next commit would recreate the same problematic release
+     - Always pair changelog reverts with actual code fixes
+
+> ⚠️ **WARNING:** Do not push the changelog revert to the default branch without including the necessary fixes. Depeding on your setup, the automation might create a new tag immediately upon commit, potentially recreating the same problematic release. Always ensure your fixes are ready before pushing the revert.
+
+## Workflow Inputs
+
+### validate-changelog.yml
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `changelog-file` | Path to the changelog file | No | `CHANGELOG.md` |
+| `error-on-template` | Error message when provided MR template string is found in the description | No | `''` |
+| `post-version-script` | Bash script to execute after version update but before changes are committed | No | `''` |
+| `run-post-version-script-in-pr` | Whether to run post-version-script in PR validation job to preview changes | No | `true` |
+
+### update-changelog.yml
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `changelog-file` | Path to the changelog file | No | `CHANGELOG.md` |
+| `enable-npm-version` | Update version in package.json | No | `true` |
+| `target-branch` | Branch to update changelog on | No | `main` |
+| `version-title-template` | Template for version title (supports {version} and {date}) | No | `'v:{version} - {date}'` |
+| `post-version-script` | Bash script to execute after version update but before changes are committed | No | `''` |
+
+### edit-release.yml
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `changelog-file` | Path to the changelog file | No | `CHANGELOG.md` |
+| `changelog-browser-url` | URL to the changelog browser | No | `https://rgembalik.gitlab.io/changelog-browser/` |
+| `changelog-browser-url-type` | Type of URL to use for changelog browser (`default_branch`, `commit`, or `tag`) | No | `default_branch` |
+
+### Available Variables
+Post version script has access to these variables:
+- `$NEW_VERSION` - new semantic version
+- `$NEW_VERSION_CHANGES` - changelog content for this version
+- `$CHANGE_LEVEL` - change level (`patch`/`minor`/`major`)
+- `$CHANGELOG_FILE` - path to changelog file

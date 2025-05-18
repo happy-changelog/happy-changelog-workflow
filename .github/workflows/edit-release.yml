@@ -13,6 +13,15 @@ on:
         required: false
         type: string
         default: 'https://rgembalik.gitlab.io/changelog-browser/'
+      changelog-browser-url-type:
+        description: 'Type of URL to use for changelog browser (default_branch, commit, or tag)'
+        required: false
+        type: string
+        default: 'tag'
+        options:
+          - default_branch
+          - commit
+          - tag
     outputs:
       release_id:
         description: 'ID of the updated release'
@@ -36,6 +45,7 @@ jobs:
         id: notes
         env:
           CHANGELOG_BROWSER: ${{ inputs.changelog-browser-url }}
+          CHANGELOG_BROWSER_TYPE: ${{ inputs.changelog-browser-url-type }}
           CHANGELOG_FILE: ${{ inputs.changelog-file }}
         run: | #shell
           VERSION=${GITHUB_REF#refs/tags/v}
@@ -47,10 +57,24 @@ jobs:
           
           if [[ -n "$PREV_TAG" ]]; then
             CHANGES=$(npx --yes changelog-tools $CHANGELOG_FILE --no-strip-markdown -c -s "<=${VERSION} >${PREV_TAG#v}" --format markdown)
-            # Create changelog browser URL
-            CHANGELOG_URL="https://raw.githubusercontent.com/${{ github.repository }}/v${VERSION}/${CHANGELOG_FILE}"
+            
+            # Create changelog browser URL based on type
+            case "$CHANGELOG_BROWSER_TYPE" in
+              "tag")
+                CHANGELOG_URL="https://raw.githubusercontent.com/${{ github.repository }}/v${VERSION}/${CHANGELOG_FILE}"
+                ;;
+              "commit")
+                # Get the commit SHA for the current tag
+                TAG_SHA=$(git rev-parse "v${VERSION}")
+                CHANGELOG_URL="https://raw.githubusercontent.com/${{ github.repository }}/${TAG_SHA}/${CHANGELOG_FILE}"
+                ;;
+              "default_branch"|*)
+                CHANGELOG_URL="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.event.repository.default_branch }}/${CHANGELOG_FILE}"
+                ;;
+            esac
+
             CHANGELOG_ENCODED_URL=$(echo -n "${CHANGELOG_URL}" | jq -srR @uri)
-            CHANGELOG_LINK="## [${PREV_TAG#v}..${VERSION}](https://rgembalik.gitlab.io/changelog-browser/?url=${CHANGELOG_ENCODED_URL}&start=${PREV_TAG#v}&end=${VERSION}&include-start=0)"
+            CHANGELOG_LINK="## [${PREV_TAG#v}..${VERSION}](${CHANGELOG_BROWSER}?url=${CHANGELOG_ENCODED_URL}&start=${PREV_TAG#v}&end=${VERSION}&include-start=0)"
             NOTES=$(echo -e "${CHANGELOG_LINK}\n\n${CHANGES}")
           else
             NOTES=$(npx --yes changelog-tools $CHANGELOG_FILE --no-strip-markdown -c -s "<=${VERSION}" --format markdown)
