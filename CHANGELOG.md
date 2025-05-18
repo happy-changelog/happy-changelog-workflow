@@ -1,13 +1,5 @@
 # Changelog
 
-## v1.6.0 - 2025-05-18
-### Added
-* User can now provide custom changelog browser url via `changelog-browser-url`
-* User can now change type of url with `changelog-browser-url-type` provided to changelog browser between `default_branch` (uses default branch), `commit` (uses commit SHA) and `tag` (uses version tag)
-
-### Changed
-* By default changelog url will now point to default banch
-
 ## v1.5.0 - 2025-04-02
 ### Fixed
 * Fixed missing variables in the update-changelog post version script

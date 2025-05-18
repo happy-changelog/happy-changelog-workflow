@@ -202,19 +202,20 @@ When merging PRs:
 
 If you need to revert a release, follow these steps:
 
-1. **Remove the Release and Tag**
+1. **Remove the Release**
+   Delete the GitHub release through UI or API
+   
+2. **Remove the Tag**
    ```bash
-   # Delete the GitHub release through UI or API
-   # Delete local and remote tags
    git tag -d v1.2.3          # Delete local tag
    git push --delete origin v1.2.3  # Delete remote tag
    ```
 
-2. **Revert Changelog Changes**
+3. **Revert Changelog Changes**
    - Edit `CHANGELOG.md`
    - Remove the version entry you want to revert
 
-3. **Push Required Fixes**
+4. **Push Required Fixes**
    - Create a new PR (or commit to main if you dare) with necessary fixes and reverts in changelog file
    - After mergin, your release will already contain the previous changelog changes
    - This is crucial because:

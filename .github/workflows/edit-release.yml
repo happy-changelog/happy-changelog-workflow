@@ -17,11 +17,7 @@ on:
         description: 'Type of URL to use for changelog browser (default_branch, commit, or tag)'
         required: false
         type: string
-        default: 'tag'
-        options:
-          - default_branch
-          - commit
-          - tag
+        default: 'default_branch'
     outputs:
       release_id:
         description: 'ID of the updated release'
