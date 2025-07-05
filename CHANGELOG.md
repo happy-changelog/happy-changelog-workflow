@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.1 - 2025-07-05
+### Fixed
+* Examples in readme now have correct indentations
+
 ## v1.6.0 - 2025-05-18
 ### Added
 * User can now provide custom changelog browser url via `changelog-browser-url`
