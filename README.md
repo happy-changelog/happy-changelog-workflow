@@ -108,20 +108,20 @@ If the PR validation fails, check:
    - Add the following workflow files:
       - Enforce the PR description format to match what we can detect:
       ```yaml
-         # .github/workflows/validate-changelog.yml
+      # .github/workflows/validate-changelog.yml
       name: Validate PR Changelog
       
       on:
-      pull_request:
-         types: [opened, edited, synchronize, reopened]
+        pull_request:
+          types: [opened, edited, synchronize, reopened]
       
       jobs:
-      validate:
-         uses: happy-changelog/happy-changelog-workflow/.github/workflows/validate-changelog.yml@v1.6.0
-         permissions:
+        validate:
+          uses: happy-changelog/happy-changelog-workflow/.github/workflows/validate-changelog.yml@v1.6.0
+          permissions:
             pull-requests: read
             contents: read
-         with:
+          with:
             changelog-file: CHANGELOG.md
             # Optional: Reject PR if description contains template text
             error-on-template: 'Changelog: patch|minor|major'
@@ -135,20 +135,20 @@ If the PR validation fails, check:
       ```
       - Update changelog and `package.json` after merge/commit into `main`
       ```yaml
-         # .github/workflows/update-changelog.yml
+      # .github/workflows/update-changelog.yml
       name: Update Changelog
       
       on:
-      push:
-         branches:
+        push:
+          branches:
             - main
       
       jobs:
-      update:
-         uses: happy-changelog/happy-changelog-workflow/.github/workflows/update-changelog.yml@v1.6.0
-         permissions:
+        update:
+          uses: happy-changelog/happy-changelog-workflow/.github/workflows/update-changelog.yml@v1.6.0
+          permissions:
             contents: write
-         with:
+          with:
             changelog-file: CHANGELOG.md
             enable-npm-version: true
             target-branch: main
@@ -163,19 +163,19 @@ If the PR validation fails, check:
       ```
       - After publishing a release, update it's description, to contain changelog since previous release
       ```yaml
-         # .github/workflows/edit-release.yml
+      # .github/workflows/edit-release.yml
       name: Edit Release Notes
       
       on:
-      release:
-         types: [published]
+        release:
+          types: [published]
       
       jobs:
-      release:
-         uses: happy-changelog/happy-changelog-workflow/.github/workflows/edit-release.yml@v1.6.0
-         permissions:
+        release:
+          uses: happy-changelog/happy-changelog-workflow/.github/workflows/edit-release.yml@v1.6.0
+          permissions:
             contents: write
-         with:
+          with:
             changelog-file: CHANGELOG.md
       ```
 
